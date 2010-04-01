@@ -101,11 +101,11 @@ class CountManager :
 		self.fsTypeDict = {}
 		#self.fsTypeDict['.txt'] = 'text'
 		self.fsTypeDict['.sql'] = 'text'
-		#self.fsTypeDict['.xml'] = 'xml'
+		self.fsTypeDict['.xml'] = 'xml'
 		self.fsTypeDict['.jsp'] = 'xml'
 		self.fsTypeDict['.wml'] = 'xml'
-		#self.fsTypeDict['.htm'] = 'xml'
-		#self.fsTypeDict['.html'] = 'xml'
+		self.fsTypeDict['.htm'] = 'xml'
+		self.fsTypeDict['.html'] = 'xml'
 		self.fsTypeDict['.js'] = 'cpp'
 		self.fsTypeDict['.cs'] = 'cpp'
 		self.fsTypeDict['.java'] = 'cpp'
@@ -200,7 +200,7 @@ ignores = (".doc", ".docx", ".xls", '.ppt', '.mpp', '.pdf',
            '.jar', '.class', 
            '.rar', '.zip', '.7z', 
            '.resx', '.csproj', '.obj', '.bak', '.jude',
-           '.txt', '.html', '.htm', '.xml'
+           '.txt',
            )
 
 errors = []
