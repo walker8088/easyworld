@@ -37,6 +37,6 @@ setup(
      name = "EasyRecorder",  
      options = options,  
      zipfile=None,  
-     windows=[{"script": "EasyRecorder.py", "icon_resources": [(1, "EasyRecorder.ico")] }],    
-     data_files=[("icons", ["icons\\record.ico", "icons\\stop.ico"]) ]  
+     windows=[{"script": "EasyRecorder.py", "icon_resources": [(1, "EasyRecorder.ico"), (2, "record.ico"), (3, "stop.ico")] }],    
+     #data_files=[("icons", ["icons\\record.ico", "icons\\stop.ico"]) ]  
      )  

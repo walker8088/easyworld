@@ -49,8 +49,13 @@ class MainWindow:
         UpdateWindow(self.hwnd)
         
         icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
-        self.record_icon = LoadImage(hinst, "icons\\record.ico", win32con.IMAGE_ICON, 0, 0, icon_flags)
-        self.stop_icon = LoadImage(hinst, "icons\\stop.ico", win32con.IMAGE_ICON, 0, 0, icon_flags)
+        
+        if hasattr(sys, "frozen") and getattr(sys, "frozen") == "windows_exe":
+                self.record_icon = CreateIconFromResource(LoadResource(None, win32con.RT_ICON, 1), True)
+                self.stop_icon = CreateIconFromResource(LoadResource(None, win32con.RT_ICON, 2), True)
+        else :
+                self.record_icon = LoadImage(hinst, "record.ico", win32con.IMAGE_ICON, 0, 0, icon_flags)
+                self.stop_icon = LoadImage(hinst, "stop.ico", win32con.IMAGE_ICON, 0, 0, icon_flags)
         
         self.workdir = GetHomeDir()
         self.recorder = Recorder(samplesize=16, samplerate=8192, channels=1)  
