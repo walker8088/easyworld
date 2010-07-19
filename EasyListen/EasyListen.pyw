@@ -9,9 +9,9 @@ from wx.lib.ticker import Ticker
 
 import lrcParser
 
-APP_NAME    = 'Easy Study'
-APP_VERSION = 'Version 0.1 Pre'
-ICON_NAME   = 'EasyStudy.ico'
+APP_NAME    = 'Easy Listen'
+APP_VERSION = 'Version 1.0'
+ICON_NAME   = 'EasyListen.ico'
 
 class MyTaskBarIcon(wx.TaskBarIcon):	
 	ID_MenuExit = wx.NewId()
