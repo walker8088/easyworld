@@ -1,0 +1,657 @@
+# HISTORY.txt
+# Version numbers between (parentheses) were not officially released.
+
+0.1.20      2003.08.29      First public release.
+
+0.1.21      2003.08.30      Added ToggleButton, StyledTextBox.  Added this
+                            history file.
+                            
+0.1.22      2003.08.30      Added 'readonly' argument to ComboBox.
+                            Added OnSelect event to ComboBox.  Also changed
+                            default value to "" (old value didn't play well
+                            with readonly-ness).
+                            
+                            Added 'process_enter' argument to TextBox.
+                            Added OnKeyDown event to TextBox.
+                            
+                            Added 'size' argument to NoteBook.
+                            
+                            New: FindReplaceDialog.
+                            
+0.1.23      2003.08.30      New: FileDialog.
+
+0.1.24      2003.08.31      New: shell.py with PyCrust and PyCrustFilling.
+                            Added 'size' argument to Splitter.
+                            NoteBook now has real size rather than (-1,-1).
+                            
+0.1.25      2003.09.01      Added Frame.SetIcon().
+
+0.1.26      2003.09.02      Added TextEntryDialog.
+
+0.1.27      2003.09.05      shell.py now works with Python 2.3 and wxPython
+                            2.4.1.2.
+                            Added keys.py with keys class.
+                            
+0.1.28      2003.09.08      Files use the new wx namespace.  Changes done by
+                            Tom Ayerst.
+                            Importing core.py now automatically checks for
+                            correct wxPython version.
+                            
+0.1.29      2003.09.11      Added dragdrop.py, with FileDropTarget class.
+
+0.1.30      2003.09.17      Added first version of TreeView.
+
+0.1.31      2003.09.22      Label.__init__ grows an 'align' parameter.
+                            Added FontDialog.
+                            Added inject.py, which meddles with Wax classes to
+                            replace certain methods.  First attempt is to
+                            replace GetFont with a version that returns wax
+                            Fonts rather than wxFonts.
+                            
+0.1.32      2003.09.25      Fixed bug in fontdialog.py.
+                            Added keys class to __init__.  Fixed a few keys.
+                            StyledTextBox: Added a number of cursor methods.
+                            
+0.1.33      2003.09.27      Added some methods to StyledTextBox, to make
+                            setting of styles and fonts easier.  (For example,
+                            it now supports the SetFont method, like most
+                            other controls.)
+                            
+0.1.34      2003.09.28      Added some more style stuff to StyledTextBox.
+
+0.1.35      2003.10.01      Added __future__ import to treeview.py.
+                            Renamed container.py to containers.py.
+                            Added GridContainer to containers.py.  Added
+                            GridPanel and GridFrame.
+                            
+0.1.36      2003.10.15      Dialogs can now be cancelled by pressing Escape.
+                            Code by Tom Ayerst.
+                            
+0.1.36a     2003.10.29      Tiny checkin: TextBox.OnText event added.  (First
+                            code contribution by Ken Kennedy.)
+                            
+0.1.37      2003.11.24      Added OverlaySizer, OverlayContainer, OverlayPanel.
+                            (Only the last one is published in __init__.py, and
+                            will be the basis for a Wizard control.)
+                            
+0.1.38      2003.11.24      Added left/right alignment to Container.  (For some
+                            reason these were left out.)
+                            Added expand/stretch/etc flags for OverlayContainer's
+                            AddComponent.
+                            
+0.1.39      2003.11.25      Added CheckBox.
+
+0.1.40      2003.11.25      Added RadioButton.
+                            Added first, incomplete versions of GroupBox and 
+                            GroupBoxContainer.
+                            Fixed GridContainer, which had some issues with
+                            (x, y) "coordinates".
+                            
+0.1.41      2003.11.27      Renamed TreeView.GetChildren to GetChildNodes.
+                            (GetChildren would shadow wxWindow.GetChildren.)
+                            Added TreeView.HasChildren.
+                            Added NoteBook.GetCurrentPage.
+
+0.1.42      2003.11.27      Added TreeView.SetImageList, SetItemImage.
+                            Added ImageList.
+                            Added ListView.SetImageList.
+                            Added FileTreeView.
+                            
+0.1.42a     2003.12.10      Import of togglebutton is now conditional (it
+                            is not imported on the Mac, where it apparently
+                            isn't available).
+                            
+0.1.43      2003.12.13      Added MDIChildFrame, MDIParentFrame, BitmapButton.
+                            Code by Gandalf.  (The MDI code is untested, but the
+                            BitmapButton code has been extended and an example
+                            was added.)
+                            
+0.1.44      2003.12.14      Added Frame.OnClose event.
+
+0.1.44a     2004.01.08      Some small bugfixes in Mac recognition and keys.py.
+
+0.1.44b     2004.01.12      Added 'ruby' and 'groovy' to styledtextbox.languages.
+
+0.1.44c     2004.01.19      Some slight changes... most notably, Dialog's
+                            OK button can now be reached as self.okbutton.
+                            
+0.1.44d     2004.01.20      Added core.Yield() to TextBox.write(), allowing for
+                            screen updates after writing.
+
+0.1.45      2004.01.23      Added waxobject.SetSizeX and SetSizeY.
+
+0.1.46      2004.02.17      Fixed bug with OnPageChanging in NoteBook. 
+                            Fixed bug with default argument for parent in
+                            Panel.
+                            Fixed bug in ListBox. (Bugfix by Eric Ziegenhorn.)
+
+0.1.47      2004.02.18      Bugfix: ListView.InsertRow should also take non-
+                            strings (and convert them to strings when passing
+                            to SetStringItem()).
+                            Added ListView.SetColumnWidths().
+                            
+                            Added FlexGridContainer, -Panel and -Frame.  Some
+                            testing is in order.
+                            Fixed some warts in GridContainer.
+                            Added some examples for the grid containers.
+                            
+0.1.48      2004.02.19      Removed 'title' attribute from Panels, because it's
+                            useless.
+                            Added 'tools' subdirectory.  Nothing in there yet,
+                            but some high-level controls (dialogs, probably)
+                            will be moved there.  Importing is *not* done
+                            automatically; use "from wax.tools import Blah".
+                            
+0.1.49      2004.02.20      TextEntryDialog now takes a default value.
+                            MessageDialog.__init__'s 'icon' parameter now takes
+                            a string (default "") indicating the type of icon
+                            that should be displayed.
+                            
+0.1.50      2004.02.22      Added TaskBarIcon.
+                            Added Frame.OnIconize event.
+                            Added example to illustrate use of TaskBarIcon.
+                            (Based on code found at Norfolk Graphics,
+                             http://norfolkgraphics.com/python.php.)
+                            
+0.2.0       2004.04.02      (interim release for compatibility with 2.5.1.2)
+                            If a Frame has no parent, it is indicated by None
+                            rather than wx.NULL.
+                            Ditto for FlexGridFrame and GridFrame.
+                            Namespace changes for shell.py and simpleeditor.py.
+                            Changed examples/canvas1.py and canvas2.py (DC 
+                            changes).
+                            ChoiceDialog: OnListBoxDoubleClick now passes
+                            event to OnClickOKButton.
+                            TreeView: wx.TreeView.GetFirstChild changed, changed
+                            GetChildNodes to reflect this.
+                            wx.Sizer.Add now takes a tuple (w, h) or a control
+                            as its first argument, prompting changes in 
+                            containers.AddComponent.
+                            
+(0.2.1)     2004.04.08      Added wax.core.CallAfter.
+                
+(0.2.2)     2004.04.28      Added StyledTextBox.GetValue.
+            
+(0.2.3)     2004.05.05      Added Canvas.OnClick event.
+            
+0.2.4       2004.05.16      Applied patch to Container and GroupBoxContainer,
+                            contributed by Grant Edwards.
+                            There are two groupbox*.py examples now that work.
+
+0.2.5       2004.05.16      Added a metaclass construct for WaxObject, allowing
+                            us to add an attribute __events__ to control
+                            classes, which automatically creates event methods.
+                            Currently only implemented in Button, for testing
+                            purposes.
+                            
+0.2.6       2004.05.17      Added core.DEBUG for easy turning on/off of debug
+                            messages (first of which is in MetaWaxObject).
+                            Another GroupBox/GroupBoxContainer fix by Grant
+                            Edwards; this time it allows GroupBox to be used as
+                            a parent (unlike wx.StaticBox in wxPython, and
+                            unlike the old GroupBox).
+                            
+0.2.7       2004.05.17      Souped up colordb.py, so it doesn't have to parse
+                            the multiline string with colors anymore.
+                            Changed methods to accept color name as well as
+                            an RGB tuple.
+                            Added SetForegroundColor, SetBackgroundColor (sic!)
+                            to WaxObject.  These methods accept color names as
+                            well, as demonstrated in the new demo file
+                            colored-buttondemo-1.py.
+                            Also added WaxObject.GetAllChildren(), which
+                            recursively loops over widgets and their children,
+                            returning a generator producing a list of all 
+                            children, grandchildren, etc.
+                            
+0.2.8       2004.05.18      Added TextBox.OnKeyUp.
+                            Changed parameter order in GridContainer._create_sizer
+                            to match wx.GridSizer.
+                            
+0.2.9       2004.05.20      menu.py: Added GetItem (which returns a wx.MenuItem
+                            rather than an id); Delete (which now accepts a
+                            wx.MenuItem as well as an id).
+                            Added tools/menuhistory.py, the first file in the
+                            tools directory.  (The MenuHistory object allows
+                            you to easily plug a "recent files" history into
+                            a menu.)
+                            
+0.2.10      2004.05.21      More patches by Grant Edwards:
+                            - Button grows 'border' and 'exactfit' parameters
+                            - Label grows 'noresize' parameter.
+                            INCOMPATIBLE CHANGE: errordialog.py moved to tools
+                            directory.  
+                            
+(...)       2004.05.26      Added Frame.OnShow, Frame.OnActivate.
+            
+(...)       2004.05.27      Added Frame.OnIdle.
+                            Added core.WakeUpIdle and tinkered with generation
+                            of functions.
+                            
+(...)       2004.06.02      Added (optional) use_stdout_window argument to
+                            Application.__init__.  When set, the app uses the
+                            stdout/stderr window.
+                            
+0.2.11      2004.06.10      Added WAX_VERSION_TUPLE.
+
+0.2.12      2004.06.11      Added pseudo-properties.  (obj.XXX is a shorthand
+                            for obj.GetXXX(), and obj.XXX = something is a
+                            shorthand for obj.SetXXX(something).)
+
+0.2.13      2004.06.19      EXPERIMENTAL RELEASE.
+                            The dreaded change of the event system.  Events
+                            are no longer bound to empty methods.  Rather, they
+                            are bound on demand.  If a class definition has a
+                            method OnXXX, where XXX is a valid event name,
+                            then that method is automatically bound to the
+                            appropriate event by BindEvents().  Ditto if OnXXX
+                            is dynamically added to an instance.
+                            
+                            May be buggy.  Known issues with OnPaint, which is
+                            already defined for most (all?) controls.  For this
+                            reason it's not in events.py's events list (yet).
+                            Neither are many other events, until this new
+                            system has been proven reliable.
+                            
+0.2.14      2004.06.21      Added OnEnter and OnExit (OnLeave) events.
+                            Added PlainContainer, PlainFrame and PlainPanel.
+                            
+0.2.15      2004.06.28      Minor change in Frame.__init__.
+                            Fixed bug with recursion in WaxObject.__getattr__.
+
+0.2.16      2004.06.28      Menu.Append now returns the item that was added.
+                            Ditto for Menu.AppendMenu.
+                            
+0.2.17      2004.06.29      Added HTMLWindow.  Added examples for Notebook and
+                            HTMLWindow.
+                            Added core.SafeYield, BeginBusyCursor and 
+                            EndBusyCursor.
+                            
+0.2.18      2004.06.30      Added OnSize, OnResize, OnMove events (global).
+                            Added OnGetFocus, OnLoseFocus (note that these
+                            names differ from what wxPython calls them).
+                            Added tab_traversal keyword argument to the
+                            __init__s of the Frame classes.
+                            
+0.2.19      2004.06.30      Added TextBox.GetCurrentLineNumber().
+                            Added a bunch of events to StyledTextBox.
+                            
+0.2.20      2004.07.01      In anticipation of future wxPython releases, the
+                            current way of setting fonts in WaxConfig.default_font
+                            now causes a warning.  The new, approved method is
+                            to use a tuple: 
+                            
+                              WaxConfig.default_font = ("Courier New", 10)
+                            
+0.2.21      2004.07.06      Removed EVT_STC_POSCHANGED event (OnPosChanged).
+                            Apparently this will be removed in wxPython 2.5.2.
+                            'OnUpdateUI' can be used instead.
+                            (There will be more incompatible changes in 2.5.2...
+                            apparently some people don't care much about
+                            keeping code backward compatible.)
+                            
+                            Added GetForegroundColor, GetBackgroundColor.
+                            Changed GridContainer.__getitem__ to return control
+                            rather than dict.
+                            Added cancel_button parameter to TextEntryDialog.
+                            Added a first version of MaskedTextBox, but it's
+                            not in __init__.py yet.  It may not stay.
+                            Added sound.py.
+                            
+                            INCOMPATIBLE CHANGES: choicedialog.py moved to
+                            tools directory.  Changed example to reflect this.
+                            
+0.2.22      2004.07.07      Added injection methods to MetaWaxObject... SetFont,
+                            and SetBackgroundColour & friends.
+                            Removed WaxObject.get_size and set_size.  (Did
+                            anybody use these?)
+                            
+0.2.23      2004.07.22      Added new parameters for 'expand' in AddComponent
+                            (horizontal, vertical, or both).  Currently only
+                            for Panel, Frame and any container whose
+                            AddComponent uses Container.AddComponent.
+                            Also added: HorizontalPanel, VerticalPanel,
+                            HorizontalFrame, VerticalFrame.
+                            
+0.2.24      2004.07.23      Added Menu.Walk and MenuBar.Walk.
+                            Added 'autoevents': if a menu item is added with
+                            Menu.Append, and no event is specified, then the
+                            menu item is hooked up to a dispatcher method,
+                            that looks up method names dynamically. E.g. the
+                            menu item "Open" in menu "File" will be associated
+                            with a method Menu_File_Open, if it exists.
+                            
+0.2.25      2004.07.24      First step toward autopacking: Containers now have
+                            a _packed attribute, which is set to 1 when Pack()
+                            is called.  If Pack() is called if _packed is 1
+                            already, nothing happens.  This change does not
+                            affect Repack().
+                            
+                            Added dragdrop.TextDropTarget.  Note that as of
+                            this release, explicitly using SetDropTarget is not
+                            necessary anymore... FileDropTarget and TextDropTarget
+                            do it automatically.  [IMPORTANT: SetDropTarget
+                            should not be called twice; programs that do this
+                            may crash, at least on Windows.]
+                            Added examples/dragdrop-1.py to demonstrate the
+                            new capabilities.
+                            
+0.2.26      2004.07.24      Added styles.py.  First classes to use the styles
+                            are Frame, Panel and Button.  Experimental.
+                            Frame and Panel now support border styles, and
+                            Button supports alignment (and exactfit).
+                            Added growable_rows and growable_cols parameters
+                            to FlexGrid{Frame,Panel}.
+                            Added a few more demos.
+                            
+0.2.27      2004.07.25      Container.AddComponent now allows for expand=''.
+                            Added styles parameters to NoteBook.
+                            
+0.2.28      2004.07.30      Added styles.properties method.  For the controls
+                            that allow styles, properties can now be set in
+                            the constructor using the 'properties' parameter.
+                            (See examples/properties-parameter-1.py.)
+                            Property dicts can be set with WaxObject.SetAttributes()
+                            as well.
+                            From now on, 'size' parameters are DEPRECATED
+                            and will be removed at some point.
+                            
+0.2.29      2004.08.17      Made to work with wxPython 2.5.2.7.  Incompatible
+                            changes.
+                            Unlike wxPython, wx.ADJUST_MINSIZE is *not* the
+                            default for Wax; wx.FIXED_MINSIZE is.  In other
+                            words, sizers still behave the same.
+                            Updated some demos.
+
+0.2.30      2004.08.22      Added events['HotKey'].
+                            Fixed up ComboBox; it now uses styles.combobox
+                            and has a new event OnTextChanged.
+                            Also added a number of styles to Frame, including
+                            resize (see examples/combobox-1.py).
+                            
+0.2.31      2004.09.04      Added 'close_box', 'minimize_box', 'maximize_box'
+                            options to Frame.
+                            
+0.2.32      2004.09.04      Added styles to ListBox.  Updated example.
+
+0.2.33      2004.09.17      Fixed bug in TreeView.HasChildren.
+                            Added styles to TreeView.
+                            
+0.2.34      2004.10.27      Added first version of TreeListView.
+                            Fixed bug in ImageList.Add.
+                            Fixed handling of styles.treeview.
+                            
+0.2.35      2004.11.04      Fixed bug in directorydialog.ChooseDirectory.
+
+0.2.36      2004.11.05      Added a bunch of styles and events to ListView.
+
+0.2.37      2004.11.07      Added 'size' parameter to DropDownBox.__init__.
+                            (The size set here will be used by certain controls,
+                            like [Flex]GridSizer.  Setting the size after
+                            construction won't have the same effect.  Therefore
+                            'size' is not going to disappear.  Rather, more
+                            controls should grow this parameter.)
+                            Also added styles to DropDownBox.  (It doesn't
+                            have any of its own, but can use wxWindow styles.)
+                            
+0.2.38      2004.11.08      Added styles for Label.
+                            Label.__init__ also grows 'size' parameter (see
+                            0.2.37).
+                            
+0.2.39      2004.11.18      Added messagedialog.ShowMessage.
+                            Added core.GetActiveWindow (used by ShowMessage).
+                            Added 'size' parameter to Panel.__init__.
+                            
+0.2.40      2004.11.26      Fixed confusing assertion error in core.py.
+
+0.2.41      2004.12.06      grid.py now uses wx.grid.Grid.  (Part of patch by
+                            Vladimir Sekissov.)
+                            Removed useless "intern"s from __init__.py.
+                            
+0.2.42      2005.01.07      For widgets that derive from WaxObject, GetFont()
+                            now returns a Wax Font, rather than a wx.Font.
+                            
+0.2.43      2005.01.15      Added styles to CheckBox.  New parameters: align
+                            and states.  Now supports 3-state checkboxen.
+                            Added distutils setup script by Neal Nelson.
+                            
+0.2.44      2005.01.21      MenuHistory.Add() now removes previous occurrences
+                            of titles.  (Used in Firedrop2.)
+                            
+0.2.45      2005.01.29      Added 'noheader' option for ListView.
+                            Added styles and events to Splitter.
+                            
+0.2.46      2005.01.30      Added ListView.[GS]etItemBackgroundColor, and.
+                            [GS]etItemTextColor.
+                            Added a colordb.convert_color.  All color-converting
+                            methods should use this.
+                            
+0.2.47      2005.02.07      Added OnRightDown, OnRightUp, OnRightClick events
+                            (events.py).
+                            
+0.2.48      2005.02.08      Added events MaxLength, TextEnter, TextMaxLen,
+                            TextURL to TextBox.
+                            Added styles for TextBox.
+                            Added examples/textbox-justify.py.
+                            
+0.2.49      2005.02.13      TextEntryDialog now uses keys module and the new
+                            'expand' notation.
+                            Fixed buglet in Application.
+                            Added examples/frame-onclose.py.
+                            
+0.2.50      2005.02.15      Added artprovider.py.  (First version contributed
+                            by Mark Andrews; minor modifications by HN.)
+                            Added examples: artprovider-1.py, bitmap-2.py,
+                            bitmap-2a.py.
+                            
+0.2.51      2005.02.21      Changed Container.AddSpace so that if a single
+                            number is passed, this is assumed to be a tuple
+                            (number, number) rather than (number, -1).
+                            Added customdialog.py.
+                            Some refactoring in Dialog (added AddButtonPanel).
+                            Added examples/customdialog-1.py.
+                           
+0.2.52      2005.02.24      Updated a number of examples.
+
+0.2.53      2005.03.07      Added utils.py with asstring().  Used asstring()
+                            in a few ListView methods to make them work properly
+                            with unicode.  Ditto for TreeView.
+                            (SF bug #1158713 by Viktor Ferenczi)
+
+0.2.54      2005.03.16      Set report=1 as default for ListView (this used to
+                            be the default in older versions).
+                            Added mousepointer.py with MousePointers object.
+                            Added new SetCursor() for most controls.
+                            (Based on code by Mark Andrews)
+                            
+0.2.55      2005.03.22      Added examples/childwindow-1.py.
+                            Cleaned up some code.
+                            Dialog now has all the events of Frame.  Similarly,
+                            CustomDialog now has all the events of Dialog.
+                            Added examples/dialog-onclose-1.py.
+                            
+0.2.56      2005.03.29      Added examples/label-multiline-1.py.
+                            Gave PlainContainer.Pack() a function: if the
+                            container only has one control, it won't take up
+                            all the available space (which seems to be the
+                            wxPython default).
+                            Moved styles from styles.py to relevant modules:
+                            Button, NoteBook, ComboBox, Frame, ListBox,
+                            ListView, Label, CheckBox, Splitter, TextBox,
+                            TreeView.
+                            Added WaxObject.SetProperties.
+                            styles.properties now calls obj.SetProperties for
+                            the remaining attributes.
+                            
+0.2.57      2005.04.01      Added LICENSE.txt and package info in __init__.py.
+                            Added methods to TextBox: GetLines, SetModified, 
+                            GetModified, InsertText.
+                            Added examples/textbox-2.py.
+                            Simplified WaxObject.GetAllChildren().
+                            Added first version of waxdocgen.
+                            
+0.2.58      2005.04.08      Added CheckListBox.
+                            Added examples/business-1.py.
+                            
+0.2.59      2005.04.09      Added WaxConfig.check_parent.  When set, when
+                            a widget is added to a container, Wax checks if the
+                            widget's parent is the same as the container (they
+                            should be, in almost all cases).  If not, a 
+                            warning is printed.
+                            Added this to the containers, NoteBook.AddPage
+                            and Splitter.Split.  (These last two *may* raise
+                            an error on certain systems if the parents don't
+                            match; to cover everything, I added the warning
+                            anyway.)
+                            (Feature suggested by Ivo van der Wijk.)
+                            
+0.2.60      2005.04.10      RadioButton: Added styles, cleaned up event
+                            handling, some refactoring.
+                            Fixed up some examples.
+                            Added styles to StatusBar.  Also added example and
+                            'add' parameter which adds the statusbar to the
+                            parent, as an alternative to calling SetStatusBar
+                            explicitly.
+                            
+0.2.61      2004.04.17      ComboBox, DropDownBox, ListBox and CheckListBox
+                            now all have a default value choices=[], so this
+                            can be omitted when creating them.
+                            Added updated version of ArtProvider, by Mark
+                            Andrews.  (+ updated example artprovider-1.py)
+                            
+0.2.62      2004.04.25      First version of WaxObject's SetWindowStyle.  First
+                            used in Button.  More to come.
+                            
+0.2.63      2004.04.28      All classes that current support styles now have
+                            all the style info (and methods) wrapped into the
+                            class itself, rather than an external function.
+                            Control-specific styles are now handled by a
+                            _params method (every class deriving from
+                            WaxObject has one).
+                            All this should work with the new SetWindowStyle.
+                            
+0.2.64      2005.05.10      Fixed GridContainer._AllControls.  Added proportion
+                            parameter (untested).  Added examples/gridpanel-5.py
+                            that demonstrates how to use border together with
+                            alignment.
+                            Removed obsolete 'stretch' from a few examples.
+
+0.2.65      2005.05.19      Added TreeView.LoadFromNestedList (patch by Dan
+                            Crosta).  Added examples/treeview-1a.py.
+                            
+0.2.66      2005.05.25      Updated code to work with Python 2.2.2 (IOW,
+                            removed the 2.3-isms).  Affected files are 
+                            listview.py, utils.py, waxobject.py, 
+                            examples/panels-1.py, waxdocgen.py.
+                            
+0.2.67      2005.06.03      Added support for multiversion wxPython (core.py).
+                            Patch by Howard B. Golden.
+                            
+0.2.68      2005.06.20      Updated imageviewer.py to display a more
+                            informative error message.
+                            waxdocgen.py now generates a module index (patch
+                            by Roy Osborne).
+                            
+/* Google Summer of Code
+   Developers: 
+   - Abhishek Reddy (AR)
+   - Jason Gedge (JG)
+   - Hans Nowak (HN)
+*/
+
+0.3.0       2005.07.03      The "blessed" wxPython version is now 2.6.
+                            Fixed a few examples based on research by JG.
+                            Removed "end of line" backslashes (combined with
+                            mixed Unix/Windows line endings, they cause a
+                            problem).
+                            Fixed issue with version number and wxversion (new
+                            in wx2.6?)
+                            
+0.3.1       2005.07.04      JG: Fixed examples/trayicon1.py.
+                            Converted all Wax files (*.py) to Unix-style line
+                            endings (so we have a uniform line ending when
+                            developing on Windows and Unix).
+                            Added auxiliary/fix_line_endings.py. [JG]
+                            Added GetEOLMode, SetEOLMode and ConvertEOLs to
+                            StyledTextBox (these methods now take or return
+                            strings: 'unix', 'dos', 'mac').
+                            
+0.3.2       2005.07.13      Fixed problem with wxversion and VersionError if
+                            wxPython is imported before wax.
+                            Added 'hide_selection' option to TextBox.
+
+0.3.3       2005.07.18      Updated CheckBox (default size etc). [JG]
+                            Fixed OverlaySizer, OverlayContainer. [JG]
+                            Fixed OverlayPanel.  examples/overlaypanel1.py now
+                            works as it should. [JG, minor changes by HN]
+                            Added auxiliary/WaxAPI.py. [JG, minor changes]
+                            
+0.3.4       2005.07.21      Added updated FindReplaceDialog [JG, minor changes].
+                            Also updated examples/findreplacedialog1.py. [JG]
+                            Removed buggy 'hide_selection' option from TextBox; 
+                            wx.TE_HIDENOSEL is now on by default. [HN]
+                            
+0.3.5       2005.07.23      Updated versions of FindReplaceDialog and example.
+                            Also works with StyledTextBox now; bugfix for
+                            TextBox. [JG]
+                            StyledTextBox: Added Replace, GetStringSelection
+                            methods. [JG]
+                            Added tools/wizard.py and example. [JG]
+                            Added tools/fancylabel.py and example. [JG]
+                            Added SystemSettings. [JG]
+                            
+0.3.6       2005.07.24      Added 'hscroll' style to TextBox.
+                            dragdrop.py: Added URLDropTarget.
+                            Added examples/dragdrop-2.py (based on code by JG,
+                            some changes by HN).
+                            Bugfix in FlexGridPanel. [Nicolas Pinault]
+                            
+0.3.7       2005.07.25      Updated auxiliary/fix_line_endings.py. [JG]
+                            Added MenuBar.__init__, which takes an optional
+                            parent, removing the need to call SetMenuBar().
+                            (Again, this is optional, and the old way still
+                            works.) [JG]
+                            Added examples/systemsettings-1.py. [JG]
+                            Updated Wizard and examples/wizard-1.py, to use
+                            Body() (among other things). [JG, some changes by HN]
+                            
+0.3.8       2005.07.27      Added new version of WaxAPI.py, now in separate
+                            directory (auxiliary/WaxAPI).  Has the capability
+                            to export HTML for online documentation. [JG]
+                            Removed assertion from Label.
+                            
+0.3.9       2005.07.29      Updated version of WaxAPI (supports choosing of
+                            custom directory for HTML generation). [JG]
+                            
+0.3.10      2005.08.04      WaxObject: added HasStyle, GetStyleDict. [JG]
+                            styles.py: added dostyle. [JG]
+                            Updated examples/findreplacedialog1.py. [JG]
+                            Added __styles__ to TextBox. [JG]
+                            Also added it to: Button, Label. [HN]
+                            Other controls will follow.  This dict is used for 
+                            both setting styles and getting a style dict.
+                            
+0.3.11      2005.08.10      WaxAPI.py: fixed bug that displayed some names
+                            twice (aliases).  Method names are now showed
+                            alphabetically. [JG]
+
+0.3.12      2005.08.14      Added examples/listview-2.py.
+
+0.3.13      2005.08.15      Added ListItemAttr.
+                            Added examples/listview-3.py. [Stefan Rank]
+                            Added core.Platform.
+                            Added tools/gauge.py and example. [JG]
+                            Added tools/slider.py and example. [JG]
+                            Added tools/spinbox.py and example. [Daniel James
+                            Baker]
+                            
+0.3.14      2005.08.16      ScrollFrame now derives from Container (IOW, we
+                            can add widgets to it like it was a Panel).
+                            Added WaxObject.GetSizeX, GetSizeY.
+                            
+0.3.15      2005.08.18      Beefed up BitmapButton (more options, etc).
+
+0.3.16      2005.08.26      Added tools/waxrf package.  This implements WaxRF,
+                            Wax's replacement for XRC.  There's also an
+                            example. [JG]
+                            

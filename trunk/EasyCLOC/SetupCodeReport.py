@@ -6,7 +6,7 @@ import py2exe
 if len(sys.argv) == 1:
     sys.argv.append("py2exe")
 
-includes = ["encodings", "encodings.*"]  
+includes = ["encodings", "encodings.*",]  
 options = {"py2exe":  
              {   "compressed": 1,  
                  "optimize": 2,  
@@ -15,10 +15,9 @@ options = {"py2exe":
              }  
            }  
 setup(     
-     version = "0.1.0",  
-     description = "Easy Line Counter",  
-     name = "EasyCLOC",  
+     version = "1.0",  
+     name = "CodeReport",  
      options = options,  
      zipfile=None,  
-     console=[{"script": "EasyCLOC.py", }]  
+     console=[{"script": "CodeReport.py", }]  
      )  
