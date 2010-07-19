@@ -4,12 +4,14 @@ import  sys
 import  wx
 import  wx.aui
 import wx.lib.analogclock 	   as ac
-import wxaddons.sized_controls as sc
+import wx.lib.sized_controls   as sc
 import wx.lib.masked.timectrl  as timectl
 import wx.lib.scrolledpanel    as scrolled
 import wx.lib.masked           as masked
 import wx.lib.mixins.listctrl  as listmix
 import os.path
+
+import win32api
 
 from yaml import load, dump
 try:
@@ -18,19 +20,20 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+'''
 import logging as log
 try:
 	log.basicConfig(
-		filename = 'SimpleAlarmClock.log',
+		filename = 'EasyAlarmer.log',
 		filemode = 'w',
 		level    = log.DEBUG,
 		format   = '[%(asctime)s] [%(levelname)-8s] %(message)s',
 		datefmt  = "%m.%d.%Y %H:%M:%S")
 except:
 	pass
+'''
 
 TB_SHOW   = wx.NewId()
-TB_CONFIG = wx.NewId()
 TB_CLOSE  = wx.NewId()
 
 #---------------------------------------------------------------------------
@@ -141,7 +144,7 @@ class AlarmerListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 class AlarmHintFrame(wx.MiniFrame):
 	def __init__(self, parent, aItem):
-		wx.MiniFrame.__init__(self, parent, -1, title = u"Alarm Notifier", style = wx.CAPTION )
+		wx.MiniFrame.__init__(self, parent, -1, title = u"EasyAlarmer", style = wx.CAPTION )
 		
 		self.alarmItem = aItem
 		
@@ -286,7 +289,7 @@ class  AlarmEditDialog(sc.SizedDialog):
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 class ClockFrame(wx.Frame):
     
-	def __init__(self, parent, id=-1, title=u"简易小闹钟", pos=wx.DefaultPosition, size=(300,400), 
+	def __init__(self, parent, id=-1, title="EasyAlarmer", pos=wx.DefaultPosition, size=(300,400), 
 					style = wx.CAPTION | wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.SYSTEM_MENU | wx.FRAME_NO_TASKBAR | wx.STAY_ON_TOP):
 					#style =wx.FRAME_SHAPED | wx.SIMPLE_BORDER | wx.FRAME_NO_TASKBAR | wx.STAY_ON_TOP ) :
 						 
@@ -296,17 +299,20 @@ class ClockFrame(wx.Frame):
 		self.Bind(wx.EVT_ICONIZE, self.OnIconfiy) 
 		
 		#SysTray Icon Setup
-		self.taskBarIcon = wx.Icon(os.path.join("..", "Resource", "Clock.ico"), wx.BITMAP_TYPE_ICO)
-		self.tb = wx.TaskBarIcon()
-		self.tb.Bind(wx.EVT_TASKBAR_RIGHT_UP, self.OnTaskBarRightClick)
+                if hasattr(sys, "frozen") and getattr(sys, "frozen") == "windows_exe":
+                    exeName = win32api.GetModuleFileName(win32api.GetModuleHandle(None))
+                    self.tbIcon = wx.Icon(exeName, wx.BITMAP_TYPE_ICO)
+                else :                
+                    self.tbIcon = wx.Icon("EasyAlarmer.ico", wx.BITMAP_TYPE_ICO)
+                        
+                self.tb = wx.TaskBarIcon()
+                self.tb.Bind(wx.EVT_TASKBAR_RIGHT_UP, self.OnTaskBarRightClick)
+                        
+		self.SetIcon(self.tbIcon)
 		
-		self.SetIcon(self.taskBarIcon)
-		
-		#self.tb.Bind(wx.EVT_TASKBAR_LEFT_UP, self.OnShow)
 		self.tb.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnShow)
 		
 		wx.EVT_MENU(self.tb, TB_SHOW,   self.OnShow)
-		wx.EVT_MENU(self.tb, TB_CONFIG, self.OnConfig)
 		wx.EVT_MENU(self.tb, TB_CLOSE,  self.OnExit)
 		
 		#Setup Timer and TimerList
@@ -338,7 +344,7 @@ class ClockFrame(wx.Frame):
 		panel.SetSizer(panel_sizer)
 		panel.Layout()
 		
-        #Create Panel and  Analog Clock
+                #Create Panel and  Analog Clock
 		clockPanel = wx.Panel(self,size = (300, 300))
 		clockPanelSizer = wx.BoxSizer(wx.HORIZONTAL)
 		clockPanelSizer.SetMinSize((300,300))
@@ -369,7 +375,7 @@ class ClockFrame(wx.Frame):
 		self.list.Bind(wx.EVT_LEFT_DCLICK, self.OnEditAlarmItem, self.list)
 		self.list.PopulateList()
 		
-        # Use a sizer to layout the controls, stacked vertically and with
+                # Use a sizer to layout the controls, stacked vertically and with
 		sizer = wx.BoxSizer(wx.VERTICAL)
 		sizer.Add(clockPanelSizer, 0, wx.ALL, 0)
 		sizer.Add(self.list, 0, wx.ALL, 0)
@@ -439,9 +445,8 @@ class ClockFrame(wx.Frame):
 		""" """
 		try:
 			menu = wx.Menu()
-			menu.Append(TB_SHOW,   u"显示小闹钟")
-			menu.Append(TB_CONFIG, u"配置小闹钟")
-			menu.Append(TB_CLOSE,  u"退出小闹钟")
+			menu.Append(TB_SHOW,   u"显示EasyAlarmer")
+			menu.Append(TB_CLOSE,  u"退出EasyAlarmer")
 			self.tb.PopupMenu(menu)
 			menu.Destroy()
 		except:
@@ -457,22 +462,18 @@ class ClockFrame(wx.Frame):
 			self.Show(True)
 		self.Raise()
 		
-	def OnConfig(self, evt): 
-		""" """
-		pass
-	
 	def OnExit(self, evt): 
 		""" """
 		self.Destroy()
 		pass
 	
 	def OnIconfiy(self, event):
-		self.tb.SetIcon(self.taskBarIcon, "Simple Clock")
+		self.tb.SetIcon(self.tbIcon, "EasyAlarmer")
 		self.Hide()
 		event.Skip()	
 	
 	def OnClose(self, event):
-		#self.tb.SetIcon(self.taskBarIcon, "Simple Clock")
+		#self.tb.SetIcon(self.tbIcon, "EasyAlarmer")
 		#event.Veto() 
 		#self.Hide()
 		#return False
@@ -483,31 +484,11 @@ class MyApp(wx.App):
 		frame = ClockFrame(None)
 		self.SetTopWindow(frame)
 		frame.Show(True)
-		return True
-
-	#def MainLoop(self):
-	#	"""MainLoop currently not used. Just place it over here for needed in near future"""
-	#	self.looping = True
-	#	myEventLoop = wx.EventLoop()
-	#	prevEventLoop = wx.EventLoop.GetActive()
-	#	wx.EventLoop.SetActive(myEventLoop)
-	#	
-	#	while self.looping :
-	#		# Any other looping code should go here
-	#
-	#		# Process GUI events last
-	#		while myEventLoop.Pending() :
-	#			myEventLoop.Dispatch()
-	#		
-	#		self.ProcessIdle()
-	#	
-	#	#log.info("System Stoped.")
-	#	wx.EventLoop.SetActive(prevEventLoop)
-		
+		return True	
 #-----------------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':    
 	app = MyApp(redirect=False)
-	log.info("SimpleAlarmClock Started.")
+	#log.info("SimpleAlarmClock Started.")
 	app.MainLoop()
-	log.info("SimpleAlarmClock Stoped.")
+	#log.info("SimpleAlarmClock Stoped.")
 	
