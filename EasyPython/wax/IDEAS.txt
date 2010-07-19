@@ -1,0 +1,26 @@
+# IDEAS.txt
+
+- What about a mixin class that adds Find/Replace capability to a given
+  control? (TextBox, StyledTextBox, SimpleEditor, whatever.)  The control
+  would need to have a certain set of methods.  (Another reason to synchronize
+  the method names on these things.) 
+
+  Parts of the class can of course be overridden, so you can add custom
+  dialogs, etc.  Default is the Wax FindReplaceDialog.
+
+  Maybe this class should have the OnFindXXX (etc) event methods, and should be
+  responsible for hooking up the EVT_ stuff to its control.  That way, we don't
+  have to add these methods to every single Wax control that might have
+  find/replace capability.
+  
+
+- Problem of the day: Object's GetFont() methods don't return a wax Font, they
+  return a wx.Font.  Is it possible to change this?  I can see at least two
+  problems:
+  1. How to "upcast" a wx.Font to a wax Font?
+  2. How to replace all wxPython GetFont methods with our own?  Putting it in
+  WaxObject doesn't work because of method resolution order.  This may change
+  in the future, and maybe switching the order of the base classes would
+  work, but I'd rather not depend on that.  Rather, maybe we should "inject"
+  the desired methods in our classes, rather than relying on mixin classes.
+  

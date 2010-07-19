@@ -1,0 +1,50 @@
+/* waxapi.css */
+
+body {
+    font-family: Verdana, Arial, Sans-Serif;
+    font-size: 12px;
+}
+
+tt {
+    font-family: Courier New, FixedSys, Teletype;
+    font-size: 13px;
+}
+
+.classname {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.functionname {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.method {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    border: 1px dotted blue;
+    background-color: #F0F0FF;
+    padding: 10px;
+}
+
+.function {
+    border: 1px dotted green;
+    background-color: #F0FFF0;
+    padding: 10px;
+}
+
+.docstring {
+    color: #303030;
+}
+
+td.moduleindex {
+    border: 1px dotted red;
+    background-color: #FFDEAD;
+    padding: 4px;
+}
+
+table.moduleindex {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}

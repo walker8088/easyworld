@@ -1,0 +1,178 @@
+# TODO.txt
+
+[Items in this list may or may not be up-to-date. :-} ]
+
+- GetStyleDict supports styles listed in a widget's __styles__, but we could
+  do more... like wxWindows's styles?  (Currently set by styles.window().)
+
+- How to add a FontDialog that accepts a parameter to show fixed-width fonts
+  only?
+  
+- Is the current __init__.py very inefficient?  It shouldn't be, but more and
+  more modules/controls are added to it.  However, it makes the
+  
+    from wax import *
+  
+  possible, where an empty __init__.py would require stuff like
+  
+    from wax.radiobutton import RadioButton
+    from wax.blah import Blah
+    ...etc...
+    
+  [There's a patch for dynamic importing; see what it can do]
+  
+- Ditto for ToolBar.  It uses a strange way to add buttons and such, then uses
+  the id to add events.  Should be done differently.
+  
+- Idea: TextBox (and maybe other text widgets) as iterator.  So we can do:
+
+  for line in mytextbox:
+      ...
+
+- BitmapButton is quite limited (doesn't display a label, for example).  We
+  need to make a "pseudobutton" (with a Panel?) that allows an image and text,
+  and that can be clicked.  (If at all possible, the "act" of clicking should
+  be made visible, like with a real button.)
+  
+- Find/Replace seems messy and unintuitive in Charm.  Maybe this can be
+  changed in Wax, by using some sensible default methods?
+  
+- Problem with Fonts: Things like Label.GetFont() use the wxPython method,
+  and thus return an instance of wx.Font rather than wax.Font.  Changing this
+  does not seem so easy.  (But maybe we can add a method to WaxObject that
+  converts wx.Fonts to wax.Fonts?)
+
+  [Solved for Font, but the same issue probably still exists for other
+  types.]
+  
+- As seen in comments:
+
+  """
+  Actually, what about a metclass for Getter and Setter, may be a la 
+  Boa-constrictor:
+
+  each time a class gros a GetX and SetX method, you could turn them into a 
+  property.  And, sometime, that could even works for the DelX part of the 
+  property.  Certainly nice to have.
+
+  Also, while looking at Wax, don't you want to change the way user play whith 
+  tree and wxTreeCtrl: I think you should grow an treeItem class that can count 
+  & access its children which in turn are treeItem, instead of always have to 
+  deals with wxTree.SetItemStuff and so on.
+  """
+
+  [Added in 0.2.12.  Not the DelX part (yet?), though.]
+  
+- Importing Wax currently also makes all the modules available in the namespace.
+  This is not what I intended.  I leave it alone for now, since the importing
+  mechanism may be replaced by something more dynamic... 
+  
+- When experimenting with Regexplorer and MenuHistory, it appeared that when
+  clicking a menu item, the event associated with that action has a peculiar
+  value for event.GetEventObject(), viz. the *frame* rather than the MenuItem.
+  Is this normal?  Can it be reproduced?  Is it possible to get the MenuItem 
+  other than through event.GetId()?
+
+   [It's normal, since you associate the "parent" (frame) with events.
+   AFAIK, there's no way to get the MenuItem *directly*.]
+
+- Maybe there should be a WaxControl object, deriving from WaxObject.  All
+  controls (which are *visible*) should be WaxControls.  All non-visible
+  classes (like Timer) should be WaxObjects, but not WaxControls.
+  (This involves moving most methods to WaxControl, I presume.)
+
+- Also, there probably should be a few mixin classes, e.g. for Frame, Panel,
+  Dialog, etc.
+  
+- Swing's panels have a method setBorder, which can be used to set a border
+  inside of the panel.  Does wxPython's Panel have something similar?  If not,
+  can be emulate it?  (The current way is to add a border *around* a control
+  you're adding.)
+
+- Currently, menus are added like this:
+
+    menubar = MenuBar()
+    ...stuff...
+    self.SetMenuBar(menubar)
+    
+  Can we make this a trifle easier by passing the widget that will contain the
+  menu to MenuBar()?  It could call SetMenuBar() then, eliminating the need
+  for calling it later.  Will menus still work if you do it that way?
+  
+- We should also do something about all the style parameters that can be
+  passed.  For example, in theory every object that derives from wxWindow
+  can be passed wxWindow's style flags (borders, tab traversal, etc).
+
+  [We're working on this; some classes don't have styles yet, though.]
+  
+- Auto-packing?
+
+- Enabled property?
+  
+- FlexGridPanel: Does border work?  It doesn't seem to, although it works for
+  GridPanel.  (Ditto for *Frame, I assume)
+  
+- See xi/tagsdialog.py.  The second row (index 1) seems to have a fixed size,
+  even though there are no controls in that column.  How can we make this 
+  smaller?  Adding a tiny Panel doesn't help.
+  
+- Container.AddComponent has the following code:
+
+        if align:
+            flags |= {
+                "t": wx.ALIGN_TOP,
+                "c": wx.ALIGN_CENTER,
+                "b": wx.ALIGN_BOTTOM,
+                "r": wx.ALIGN_RIGHT,
+                "l": wx.ALIGN_LEFT,
+            }.get(align.lower()[:1], 0)
+
+  ...Is it possible in wxPython to use multiple alignments, e.g.
+  center and top?  If so, then Wax must provide a way to use
+  multiple alignments, e.g. "ct", which requires scanning of the whole
+  alignment string.  (GridContainer.AddComponent already accepts such
+  a string.)
+
+- A lot of old code uses 'stretch' and 'expand={0|1}'.  All of this must
+  be replaced with the new 'expand="string"' notation.
+  
+- There is, and/or will be, duplicate code in the various Frames and
+  Panels.  Maybe this should be put in a mixin class.
+
+- This has been suggested before: what about a way to add widgets to a
+  container in one pass?  E.g.
+
+  b = mypanel.MakeComponent(Button, "text", event=something)
+
+  This would create the Button on the fly, set the right parent (i.e. mypanel),
+  then add it to mypanel with AddComponent.  MakeComponent returns the button
+  instance, of course.
+
+  One possible drawback is that we have to specify the layout params in the
+  same constructor, which possibly leads to a clash with parameters of the same
+  name in the object constructor.  ('align' comes to mind.)
+
+  b = mypanel.MakeComponent(Button, "text", event=something, expand='h',
+      border=1)
+
+  We could use Make and Add as aliases for MakeComponent and AddComponent.
+
+- Add RadioBox (maybe with a different name, like RadioButtonBox?).
+  Not extremely urgent, because it's easy to make a GroupBox and stick a
+  bunch of RadioButtons in it.
+  
+- StyledTextBox: There is currently an event OnPaint that clashes with the
+  existing method of the same name.  Let's rename this event to OnPainted or
+  something, but check the consequences first.  (Maybe it's used in existing
+  programs?)
+  
+- Containers need to support more sizer methods.  For example, it should be
+  possible to easily remove widgets from a container.  Ditto for repacking
+  (sometimes we need sizer.Layout()).
+  
+- ScrolledFrame (based on wx.ScrolledWindow) can be used for drawing, but it
+  should also be possible to add widgets to it, like with a "normal" frame.
+  To do this, we need a sizer.  (This is possible; see wx.ScrolledWindow
+  documentation.)
+  
+- Tooltip support for all widgets.  Maybe SetToolTip can take a string?
