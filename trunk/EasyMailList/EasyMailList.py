@@ -24,8 +24,8 @@ from email.MIMEMultipart import MIMEMultipart
 class MailListItem :
 	def __init__(self) :
 		self.setList("");
-		#self.setPopAccount("pop.inspurworld.com", "inspurworld-bu4@inspurworld.com", "bu41234")
-		#self.setSmtpAccount("smtp.inspurworld.com")
+		#self.setPopAccount("pop.com", "inspurworld-bu4@com", "******")
+		#self.setSmtpAccount("smtp.com")
 		
 	def setPopAccount(self, host, user, passwd) :
 		self.popHost   = host
@@ -129,7 +129,7 @@ class MailListBot :
 					memberValue = sheet.cell_value(row, 5)
 					if memberValue != "" :
 						logging.debug("Find a new member : %s at line %d", memberValue, row + 1)
-						currMembers.append(memberValue + "@inspurworld.com")					
+						currMembers.append(memberValue + "@com")					
 				else :	
 					logging.error("Can't find main group name in the line %d", row + 1)
 			else :
@@ -137,8 +137,8 @@ class MailListBot :
 					logging.debug("Find a new group : %s at line : %d", groupValue, row + 1)
 					# find a new group. add current group to MailList
 					listItem = MailListItem()
-					listItem.setPopAccount("pop.inspurworld.com", currGroup + "@inspurworld.com", "bu41234")
-					listItem.setSmtpAccount("smtp.inspurworld.com", currGroup + "@inspurworld.com", "bu41234")
+					listItem.setPopAccount("pop.com", currGroup + "@com", "****")
+					listItem.setSmtpAccount("smtp.com", currGroup + "@com", "****")
 					
 					listItem.setList(currGroup, currSubGroups, currMembers)
 					self.mailList.append(listItem)
@@ -155,15 +155,15 @@ class MailListBot :
 				memberValue = sheet.cell_value(row, 5)
 				if memberValue != "" :
 					logging.debug("Find a new member : %s at line %d", memberValue, row + 1)
-					currMembers.append(memberValue + "@inspurworld.com")
+					currMembers.append(memberValue + "@com")
 					
 		
 		#After reading the last line. add the last grouop to MailList
 		if currGroup != "" :
 			listItem = MailListItem()
 			listItem.setList(currGroup, currSubGroups, currMembers)
-			listItem.setPopAccount("pop.inspurworld.com", currGroup + "@inspurworld.com", "bu41234")
-			listItem.setSmtpAccount("smtp.inspurworld.com", currGroup + "@inspurworld.com", "bu41234")
+			listItem.setPopAccount("pop.com", currGroup + "@com", "******")
+			listItem.setSmtpAccount("smtp.com", currGroup + "@com", "******")
 			self.mailList.append(listItem)	
 		
 		logging.info("Process end. List groups here:")
@@ -261,7 +261,7 @@ class MailListBot :
 				msgFolder = os.path.join(self.workFolder, mailListItem.name)
 				
 				for matchLine in matchFrom :
-					if string.lower(matchLine) == "from: mailer-daemon@mail.inspurworld.com" :
+					if string.lower(matchLine) == "from: mailer-daemon@mail.com" :
 						logging.error("Find a mealer-daemon return back mail, saving it to SPAM folder.")
 						msgFolder = self.spamMsgFolder	
 						msgFile = datetime.datetime.now().isoformat()
