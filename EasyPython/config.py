@@ -6,26 +6,17 @@ from drPreferences import drPreferences
 import glob, utils
 
 global app
-global prefs, prefsfile, preferencesdirectory, programdirectory
+global prefs, prefsfile, AppDataDir, AppDir,BitmapDir
+global BitmapDir, AppDataDir, AppDataDir 
 global PLATFORM_IS_WIN, PLATFORM_IS_GTK, PLATFORM_IS_MAC
 global pythexec, pythexecw
 
 prefdialogposition = 0
-
-#*******************************************************************************************************
-logdir = os.path.expanduser("~").replace("\\", "/")
-if sys.platform == "win32":
-    if os.environ.has_key("APPDATA"):
-        logdir = os.environ["APPDATA"].replace("\\", "/")
-    if not os.path.exists(logdir):
-        logdir = '/'
-if not logdir.endswith('/'):
-    logdir += '/'
         
 #*******************************************************************************************************
 def Init() :   
         global app
-        global prefs, prefsfile, preferencesdirectory, programdirectory
+        global prefs, prefsfile, AppDataDir, AppDir,BitmapDir
         global PLATFORM_IS_WIN, PLATFORM_IS_GTK, PLATFORM_IS_MAC
         global pythexec, pythexecw
         
@@ -38,19 +29,26 @@ def Init() :
         
         if PLATFORM_IS_WIN:
             pythexec = sys.prefix.replace("\\", "/") + "/python.exe"
-            pythexecw = sys.prefix.replace("\\", "/") + "/pythonw.exe"
+            pythexecw = sys.prefix.replace("\\", "/") + "/python.exe"
         else:
             pythexec = sys.executable
 
         #Preferences
-        preferencesdirectory = ""
-        programdirectory = os.path.dirname(os.path.abspath(__file__)).replace("\\", "/")
-    
-        prefs = drPreferences(PLATFORM_IS_WIN, programdirectory)
-        prefsfile = preferencesdirectory + "/preferences.dat"
+        AppDir = utils.module_path()
+        AppDataDir = os.path.join(AppDir,"data")
+        if not os.path.exists(AppDataDir):
+            os.mkdir(AppDataDir)
 
+        BitmapDir = os.path.join(AppDir,"bitmaps")
+        if not os.path.exists(BitmapDir):
+            utils.ShowMessage("Bitmap Directory (" + BitmapDir + ") does Not Exist.", "EasyPython Fatal Error")
+            sys.exit(1)
+        
+        prefsfile = os.path.join(AppDataDir,"preferences.dat")
+      
+        prefs = drPreferences(PLATFORM_IS_WIN, AppDir)
+        
         LoadPreferences()
-        SetEasyPythonDirectories()
         
         utils.Init()
         
@@ -63,19 +61,19 @@ def Init() :
                 glob.CurrDir = os.path.dirname(glob.recentfiles[0])
             #end limodou
             else:
-                glob.CurrDir = programdirectory
+                glob.CurrDir = AppDir
 
         try:
             os.chdir(glob.CurrDir)
         except:
-            glob.CurrDir = programdirectory
+            glob.CurrDir = AppDir
             os.chdir(glob.CurrDir)
 
     
 #*******************************************************************************************************
 def LoadPreferences():
         global app
-        global prefs, prefsfile, preferencesdirectory, programdirectory
+        global prefs, prefsfile, AppDataDir, AppDir
         global PLATFORM_IS_WIN, PLATFORM_IS_GTK, PLATFORM_IS_MAC
         global pythexec, pythexecw
 
@@ -96,31 +94,4 @@ def LoadPreferences():
             sys.setdefaultencoding(prefs.defaultencoding)
             wx.SetDefaultPyEncoding(prefs.defaultencoding)
 
-#*******************************************************************************************************
-global BitmapDir, datdirectory, shortcutsdirectory 
-def SetEasyPythonDirectories():
-        global BitmapDir, datdirectory, shortcutsdirectory 
-        #bitmaps code directory
-        BitmapDir = programdirectory + "/bitmaps"
-        if not os.path.exists(BitmapDir):
-            utils.ShowMessage("Bitmap Directory (" + BitmapDir + ") does Not Exist.", "EasyPython Fatal Error")
-            sys.exit(1)
-
-        #dat directory
-        datdirectory = os.path.join(preferencesdirectory, 'dat')
-        if not os.path.exists(datdirectory):
-            os.mkdir(datdirectory)
-
-        #shortcuts directory
-        shortcutsdirectory = os.path.join(preferencesdirectory, 'shortcuts')
-        if not os.path.exists(shortcutsdirectory):
-            os.mkdir(shortcutsdirectory)
-
-def WriteUserPreferencesDirectoryFile():
-        f = open(preferencesdirectoryfile, 'w')
-        f.write(preferencesdirectory)
-        f.close()
-
-
-#*******************************************************************************************************
-            
+#*******************************************************************************************************            

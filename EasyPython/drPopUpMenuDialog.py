@@ -87,7 +87,7 @@ class drPopUpMenuDialog(wx.Dialog):
         self.menubuttonSizer = wx.BoxSizer(wx.VERTICAL)
         self.listSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.datdirectory = parent.datdirectory
+        self.AppDataDir = parent.AppDataDir
 
         popupmenulist = []
 
@@ -323,7 +323,7 @@ class drPopUpMenuDialog(wx.Dialog):
 
         self.parent.popupmenulist = popupmenulist
 
-        popupfile = self.datdirectory + "/popupmenu.dat"
+        popupfile = self.AppDataDir + "/popupmenu.dat"
         try:
             f = file(popupfile, 'w')
             f.write(popupmenustring)

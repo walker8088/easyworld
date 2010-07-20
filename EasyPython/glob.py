@@ -31,7 +31,7 @@ FormatWinReTarget = re.compile('((?<!\r)\n)|(\r(?!\n))', re.M)
 
 #**********************************************************************************    
 def LoadRecentFiles():
-        f = config.datdirectory + "/recent_files.log"
+        f = config.AppDataDir + "/recent_files.log"
         if not os.path.exists(f):
             try:
                 t = open(f, 'w')
@@ -57,7 +57,7 @@ def LoadRecentFiles():
             utils.AskExitingEasyPython()
     
 def WriteRecentFiles():
-        recentfiles = config.datdirectory + "/recent_files.log"
+        recentfiles = config.AppDataDir + "/recent_files.log"
         try:
             fin = open(recentfiles, 'w')
             x = 0
@@ -75,7 +75,7 @@ PopupMenuList = []
 
 def LoadPopUpFile():
     #check for preferences file in user userpreferencesdirectory
-    popupfile = config.datdirectory + "/popupmenu.dat"
+    popupfile = config.AppDataDir + "/popupmenu.dat"
 
     if os.path.exists(popupfile):
         try:

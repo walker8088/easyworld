@@ -1,5 +1,6 @@
 #coding:utf-8
-
+import os
+import sys
 import re
 import wx
 import config, glob
@@ -45,7 +46,7 @@ def GetFilePath(path):
 def LoadDialogSizeAndPosition(dialog, dialogfile, defaultdir=''):
         if config.prefs.rememberdialogsizesandpositions:
             if not defaultdir:
-                defaultdir = config.datdirectory
+                defaultdir = config.AppDataDir
             sizeposfile = defaultdir + '/' + dialogfile
             try:
                 if os.path.exists(sizeposfile):
@@ -64,7 +65,7 @@ def SaveDialogSizeAndPosition(dialog, dialogfile, defaultdir=''):
         if config.prefs.rememberdialogsizesandpositions:
             try:
                 if not defaultdir:
-                    defaultdir = config.datdirectory
+                    defaultdir = config.AppDataDir
                 f = file(defaultdir + '/' + dialogfile, 'wb')
                 x, y = dialog.GetSizeTuple()
                 px, py = dialog.GetPositionTuple()
@@ -104,5 +105,18 @@ def Append_Menu(menu, id, s, LaunchesDialog = False, AmpersandAt = -1, absolutel
             item.SetBitmap(bmp)
         menu.AppendItem(item)
 
-        
-                    
+
+def we_are_frozen():
+    """Returns whether we are frozen via py2exe.
+    This will affect how we find out where we are located."""
+
+    return hasattr(sys, "frozen")
+
+def module_path():
+    """ This will get us the program's directory,
+    even if we are frozen using py2exe"""
+
+    if we_are_frozen():
+        return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+
+    return os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))                    

@@ -228,9 +228,9 @@ def GetPreferencesDictionary():
 
 class drPreferences:
 
-    def __init__(self, platform_is_windows, programdirectory = ""):
+    def __init__(self, platform_is_windows, AppDir = ""):
         self.platform_is_windows = platform_is_windows
-        self.programdirectory = programdirectory
+        self.AppDir = AppDir
         #General Settings
         self.rememberwindowsizeandposition = 1
         self.rememberdialogsizesandpositions = 1
@@ -247,7 +247,7 @@ class drPreferences:
         self.vieweol = 1
         self.checkeol = 1
         self.pythonargs = ""
-        self.defaultdirectory = programdirectory
+        self.defaultdirectory = AppDir
         self.enablefeedback = 1
         wx.GetApp().debugmodus = self.debugmodus = 1
         self.alwayspromptonexit = 0
@@ -477,10 +477,10 @@ class drPreferences:
             self.__dict__[key] = value
 
     def reset(self):
-        self.__init__(self.platform_is_windows, self.programdirectory)
+        self.__init__(self.platform_is_windows, self.AppDir)
 
     def resetjust(self, target):
-        defaults = drPreferences(self.platform_is_windows, self.programdirectory)
+        defaults = drPreferences(self.platform_is_windows, self.AppDir)
 
         prefsdictionary = GetPreferencesDictionary()
         if prefsdictionary.has_key(target):
@@ -490,7 +490,7 @@ class drPreferences:
 
     def Copy(self, target):
         self.platform_is_windows = target.platform_is_windows
-        self.programdirectory = target.programdirectory
+        self.AppDir = target.AppDir
 
         prefsdictionary = GetPreferencesDictionary()
         for Entry in prefsdictionary:

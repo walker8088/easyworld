@@ -95,82 +95,52 @@ def CheckAscii(text):
             return False
     return True
 
-def DecodeTextWith(text, encoding):
-    #Try the encoding
+def DecodeTextWithCode(text, encoding):
     try:
-        text = text.encode(encoding)
+        text = text.decode(encoding)
         return text
     except:
-        pass
-
-    return None
+        return None
 
 def DecodeText(text, encoding='<Default Encoding>'):
-    if wx.USE_UNICODE:
-
+        if type(text) == unicode :
+                return text
         etext = None
 
         if encoding != '<Default Encoding>':
-            etext = DecodeTextWith(text, encoding)
-            if etext is not None:
-                return etext
+            etext = DecodeTextWithCode(text, encoding)
+            if etext: return etext
 
+        etext = DecodeTextWithCode(text, 'utf-8')
+        if etext: return etext
+        
         defaultencoding = len(config.prefs.defaultencoding) > 0
-
-        if config.prefs.autodetectencoding:
-            enco = CheckForEncodingComment(text)
-            if enco is not None:
-                etext = DecodeTextWith(text, enco)
-                if etext is not None:
-                    return etext
-
-            if utf8Detect(text):
-                etext = DecodeTextWith(text, 'utf-8')
-                if etext is not None:
-                    return etext
-
         if defaultencoding:
-            etext = DecodeTextWith(text, config.prefs.defaultencoding)
-            if etext is None:
-                utils.ShowMessage('There was an error using the encoding "%s".' % (config.prefs.defaultencoding), 'Decoding Error')
-            else:
-                return etext
-
-        if CheckAscii(text):
-            return text
-
-        if etext is None:
-            etext = DecodeTextWith(text, wx.GetDefaultPyEncoding())
-            if etext is None:
-                raise Exception, 'Encoding Error!'
-            else:
-                return etext
-
-    else:
+            etext = DecodeTextWithCode(text, config.prefs.defaultencoding)
+            if etext: return etext
+        
+        #print wx.GetDefaultPyEncoding()
+        #TODO:FIX IT
+        etext = DecodeTextWithCode(text, 'gb2312')
+        if etext : return etext
+        
+        return None
+        
+def EncodeTextWithCode(text, encoding):
+    if type(text) == unicode :
         return text
-
-def EncodeTextWith(text, encoding):
-    #Try the encoding
+    
     try:
-        #AB, 25.02.2007:
-        import types
-        if type(text)==types.UnicodeType:
-            return text
         text = unicode(text, encoding)
         return text
     except:
-        print "ERROR EncodeTextWith ",text,type(text)
         return None
 
-
 def EncodeText(text, encoding='<Default Encoding>', returnEncoding=False):
-
-    if wx.USE_UNICODE:
-
         etext = None
 
         if encoding != '<Default Encoding>':
-            etext = EncodeTextWith(text, encoding)
+            etext = EncodeTextWithCode(text, encoding)
             if etext is not None:
                 if returnEncoding:
                     return etext, encoding
@@ -179,18 +149,17 @@ def EncodeText(text, encoding='<Default Encoding>', returnEncoding=False):
 
         defaultencoding = len(config.prefs.defaultencoding) > 0
 
-        if config.prefs.autodetectencoding:
-            enco = CheckForEncodingComment(text)
-            if enco is not None:
-                etext = EncodeTextWith(text, enco)
+        enco = CheckForEncodingComment(text)
+        if enco is not None:
+                etext = EncodeTextWithCode(text, enco)
                 if etext is not None:
                     if returnEncoding:
                         return etext, enco
                     else:
                         return etext
 
-            if utf8Detect(text):
-                etext = EncodeTextWith(text, 'utf-8')
+        if utf8Detect(text):
+                etext = EncodeTextWithCode(text, 'utf-8')
                 if etext is not None:
                     if returnEncoding:
                         return etext, 'utf-8'
@@ -198,7 +167,7 @@ def EncodeText(text, encoding='<Default Encoding>', returnEncoding=False):
                         return etext
 
         if defaultencoding:
-            etext = EncodeTextWith(text, config.prefs.defaultencoding)
+            etext = EncodeTextWithCode(text, config.prefs.defaultencoding)
             if etext is None:
                 utils.ShowMessage('There was an error using the encoding "%s".' % (config.prefs.defaultencoding), 'Encoding Error')
             else:
@@ -213,9 +182,8 @@ def EncodeText(text, encoding='<Default Encoding>', returnEncoding=False):
             else:
                 return text
 
-
         if etext is None:
-            etext = EncodeTextWith(text, wx.GetDefaultPyEncoding())
+            etext = EncodeTextWithCode(text, wx.GetDefaultPyEncoding())
             if etext is None:
                 # Patch by knuger, Jan 2007: added "Please try..." to error message
                 raise Exception, \
@@ -225,9 +193,3 @@ def EncodeText(text, encoding='<Default Encoding>', returnEncoding=False):
                     return text, wx.GetDefaultPyEncoding()
                 else:
                     return text
-
-    else:
-        if returnEncoding:
-            return text, '<Default Encoding>'
-        else:
-            return text

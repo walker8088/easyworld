@@ -139,7 +139,7 @@ def ExportDrScriptsTo(prefdir, filename):
 
     zf.close()
 
-def ExportPreferencesTo(pluginsdirectory, prefdir, shortcutsdir, datdirectory, filename,
+def ExportPreferencesTo(pluginsdirectory, prefdir, shortcutsdir, AppDataDir, filename,
                         shortcuts = True, popupmenu = True, toolbar = True, plugins = True, drscripts = True):
     zf = zipfile.ZipFile(filename, 'w')
 
@@ -160,11 +160,11 @@ def ExportPreferencesTo(pluginsdirectory, prefdir, shortcutsdir, datdirectory, f
 
     #Add Pop Up Menu
     if popupmenu:
-        zf.write(datdirectory +  "/popupmenu.dat", 'popupmenu.dat')
+        zf.write(AppDataDir +  "/popupmenu.dat", 'popupmenu.dat')
 
     #Add ToolBar
     if toolbar:
-        zf.write(datdirectory + "/toolbar.dat", 'toolbar.dat')
+        zf.write(AppDataDir + "/toolbar.dat", 'toolbar.dat')
 
     zf.close()
 

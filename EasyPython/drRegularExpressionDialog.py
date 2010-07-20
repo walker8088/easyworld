@@ -103,7 +103,7 @@ class drRegularExpressionDialog(wx.Frame):
         self.defaultdirectory = self.drpyframe.prefs.defaultdirectory
         self.enablefeedback = self.drpyframe.prefs.enablefeedback
         self.filedialogparent = self.drpyframe
-        self.regdatdirectory = os.path.join(self.drpyframe.datdirectory, 'regex')
+        self.regdatdirectory = os.path.join(self.drpyframe.AppDataDir, 'regex')
         if not os.path.exists(self.regdatdirectory):
             os.mkdir(self.regdatdirectory)
 

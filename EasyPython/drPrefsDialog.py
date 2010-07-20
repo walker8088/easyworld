@@ -686,7 +686,7 @@ class GeneralPanel(PrefsPanel):
         self.chkvieweol = wx.CheckBox(self, -1, "")
 
 
-        self.txtdefaultuserprefsdirectory = wx.TextCtrl(self, -1, config.preferencesdirectory,  wx.Point(15, 325), (250, -1))
+        self.txtdefaultuserprefsdirectory = wx.TextCtrl(self, -1, config.AppDataDir,  wx.Point(15, 325), (250, -1))
         self.btnBrowseUserPrefsDir = wx.Button(self, self.grandparent.ID_FILE_BROWSE_USER_PREFS_DIR, " &Browse ")
         self.txtdefaultcurdirdirectory = wx.TextCtrl(self, -1, config.prefs.defaultdirectory,  wx.Point(15, 375), (250, -1))
         self.btnBrowseCurDir = wx.Button(self, self.grandparent.ID_FILE_BROWSE_CUR_DIR, " &Browse ")
@@ -735,7 +735,7 @@ class GeneralPanel(PrefsPanel):
         self.Bind(wx.EVT_BUTTON,  self.OnbtnImportPrefs, id=self.grandparent.ID_IMPORT_PREFS)
 
     def reset(self):
-        self.txtdefaultuserprefsdirectory.SetValue(config.preferencesdirectory)
+        self.txtdefaultuserprefsdirectory.SetValue(config.AppDataDir)
         self.txtdefaultcurdirdirectory.SetValue(config.prefs.defaultdirectory)
         self.chkrememberwindowsizeandposition.SetValue(config.prefs.rememberwindowsizeandposition)
         self.chkrememberdialogsizesandpositions.SetValue(config.prefs.rememberdialogsizesandpositions)
@@ -795,7 +795,7 @@ class GeneralPanel(PrefsPanel):
             if filename.endswith('.zip')==False: #AB: bug of drFileDialog
                 filename=filename.split('.')[0]+'.zip'
             zf = zipfile.ZipFile(filename, 'w')
-            drZip.AddDirectoryToZipFile(self.drframe.preferencesdirectory,'',zf)
+            drZip.AddDirectoryToZipFile(self.drframe.AppDataDir,'',zf)
             zf.close()
         dlg.Destroy()
 
@@ -805,7 +805,7 @@ class GeneralPanel(PrefsPanel):
             dlg = drFileDialog.FileDialog(self.drframe, "Import Preferences, Plugins, and DrScripts From", 'Zip File (*.zip)|*.zip')
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath().replace("\\", "/")
-                drZip.ImportPreferencesFrom(self.drframe.preferencesdirectory, filename)
+                drZip.ImportPreferencesFrom(self.drframe.AppDataDir, filename)
                 self.drframe.ShowMessage('Successfully imported preferences, plugins, and drscripts.', 'Import Success')
 
             dlg.Destroy()
@@ -1183,9 +1183,9 @@ class drPrefsDialog(wx.Dialog):
         self.ID_BTN_WILDCARD = 510
         self.ID_BTN_LNK_REPLACE_TABLE = 511
 
-        self.prefs = drPreferences(config.PLATFORM_IS_WIN, config.programdirectory)
+        self.prefs = drPreferences(config.PLATFORM_IS_WIN, config.AppDir)
         self.prefs.Copy(config.prefs)
-        self.oldprefs = drPreferences(config.PLATFORM_IS_WIN, config.programdirectory)
+        self.oldprefs = drPreferences(config.PLATFORM_IS_WIN, config.AppDir)
         self.oldprefs.Copy(config.prefs)
 
         self.lbPrefs = drPrefsBook(self, self.ID_LB_PREFS, (600, 400))
@@ -1267,7 +1267,7 @@ class drPrefsDialog(wx.Dialog):
         self.EndModal(0)
 
     def OnbtnHelp(self, event):
-        self.parent.ViewURLInBrowser(self.parent.programdirectory + "/documentation/preferences.html")
+        self.parent.ViewURLInBrowser(self.parent.AppDir + "/documentation/preferences.html")
 
     def OnbtnReset(self, event):
         answer = wx.MessageBox("This will reset all preferences to the program default.\n(You still need to click update and/or save)\nAre you sure you want to do this?", "Reset Preferences", wx.YES_NO | wx.ICON_QUESTION)
@@ -1302,9 +1302,8 @@ class drPrefsDialog(wx.Dialog):
 
     def OnbtnSave(self, event):
         config.prefs = self.GetPreferences()
-        config.WriteUserPreferencesDirectoryFile()
-        if not os.path.exists(config.preferencesdirectory):
-            drScrolledMessageDialog.ShowMessage(self, "Your userpreferencesdirectory '" + config.preferencesdirectory + "' does not exist.", "DrPython Error")
+        if not os.path.exists(config.AppDataDir):
+            drScrolledMessageDialog.ShowMessage(self, "Your userpreferencesdirectory '" + config.AppDataDir + "' does not exist.", "DrPython Error")
             return
         preffile = config.prefsfile
         try:
@@ -1337,7 +1336,7 @@ class drPrefsDialog(wx.Dialog):
         self.prefs.iconsize = int(self.pnlGeneral.boxiconsize.GetStringSelection())
         self.prefs.pythonargs = self.pnlGeneral.txtpythonargs.GetValue()
 
-        self.parent.preferencesdirectory = self.pnlGeneral.txtdefaultuserprefsdirectory.GetValue().replace('\\', '/')
+        self.parent.AppDataDir = self.pnlGeneral.txtdefaultuserprefsdirectory.GetValue().replace('\\', '/')
         self.prefs.defaultdirectory = self.pnlGeneral.txtdefaultcurdirdirectory.GetValue().replace('\\', '/')
 
         self.prefs.enablefeedback = int(self.pnlGeneral.chkenablefeedback.GetValue())

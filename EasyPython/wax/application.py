@@ -27,6 +27,7 @@ class Application(wx.App):
         else:
             print >> sys.stderr, "Warning: This construct will not work in future wxPython versions"
         self.mainframe = self.frameklass(*self.args, **self.kwargs)
+        
         if hasattr(self.mainframe.__class__, "__ExceptHook__"):
             sys.excepthook = self.mainframe.__ExceptHook__
         else :
