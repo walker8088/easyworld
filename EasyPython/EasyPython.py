@@ -11,15 +11,13 @@ from wx.lib.agw.aui import aui_switcherdialog as ASD
  
 import config, glob, utils
 
-from drMenu import * 
-
 from actions import *        
-
 from Notebook import *
 from DocManager import *
 from PluginManager import *
 from ShortcutManager import *
 
+from drMenu import * 
 from drPrompt import *
 from drPrinter import *
 
@@ -160,28 +158,6 @@ class MainFrame(wx.Frame):
         
         return acts
         
-    def RestoreWinInfo(self) :    
-        WindowWidth = 800
-        WindowHeight = 600
-        wasMaximized = 0
-        
-        if config.prefs.rememberwindowsizeandposition:
-            if os.path.exists(config.AppDataDir + "/EasyPython.sizeandposition.dat"):
-                try:
-                    f = file(config.AppDataDir + "/EasyPython.sizeandposition.dat", 'r')
-                    text = f.read()
-                    if text:
-                        values = map(int, text.split('\n'))
-                        if len (values) == 5:
-                            WindowWidth, WindowHeight, WindowX, WindowY, wasMaximized = values
-                            self.SetSize((WindowWidth, WindowHeight))
-                            self.Move(wx.Point(WindowX, WindowY))
-                            if wasMaximized == 1:
-                                wx.CallAfter(self.Maximize)
-                    f.close()
-                except:
-                    pass
-                    
     #Initialize menus for Advanced mode (more items)
     def CreateMenus(self):
         self.filemenu = drMenu(self)
@@ -362,58 +338,22 @@ class MainFrame(wx.Frame):
 
     def OnCloseW(self, event):
         glob.IgnoreEvents = True
-        if event.CanVeto():
-            try:
-                x = glob.docMgr.selection
-                if glob.docMgr.selection > 0:
-                    fromzero = glob.docMgr.selection
-                l = len(glob.docMgr.docs)
-                while x < l:
-                    if glob.docMgr.docs[x].GetModify():
-                        answer = wx.MessageBox(u'你需要保存"%s"吗?' % glob.docMgr.docs[x].GetFileName(),
-                            "EasyPython", wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
-                        if answer == wx.YES:
-                            glob.docMgr.SelectDoc(x)
-                            self.OnSave(event)
-                        elif answer == wx.CANCEL:
-                            return
-                    x = x + 1
-
-                if fromzero > 0:
-                    x = 0
-                    l = fromzero
-                    while x < l:
-                        if glob.docMgr.docs[x].GetModify():
-                            answer = wx.MessageBox(u'你需要保存"%s"吗?' % glob.docMgr.docs[x].GetFileName(),
-                                "EasyPython", wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
-                            if answer == wx.YES:
-                                glob.docMgr.SelectDoc(x)
-                                self.OnSave(event)
-                            elif answer == wx.CANCEL:
-                                return
-                        x = x + 1
-            except:
-                if config.prefs.alwayspromptonexit:
-                    if not utils.Ask(u"你真的要退出程序么?", "EasyPython"):
-                        return
-
-        glob.DisableEventHandling = True
-        if config.prefs.rememberwindowsizeandposition:
-            wasMaximized = 0
-            if self.IsMaximized(): #only to get the right values
-                self.Maximize(False)
-                wasMaximized = 1
-
-            #if not self.IsMaximized(): #else some problems appears (?)
-            try:
-                f = file(config.AppDataDir + "/EasyPython.sizeandposition.dat", 'w')
-                x, y = self.GetSizeTuple()
-                px, py = self.GetPositionTuple()
-                f.write(str(x) + '\n' + str(y) + '\n' + str(px) + '\n' + str(py) + '\n' + str(wasMaximized))
-                f.close()
-            except:
-                utils.ShowMessage("Error Saving Window Size", 'Error')
-
+        if not event.CanVeto():   
+               return 
+               
+        x = 0
+        l = len(glob.docMgr.docs)
+        while x < l:
+            if glob.docMgr.docs[x].GetModify():
+                answer = wx.MessageBox(u'你需要保存"%s"吗?' % glob.docMgr.docs[x].GetFileName(),
+                    "EasyPython", wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
+                if answer == wx.YES:
+                    glob.docMgr.SelectDoc(x)
+                    self.OnSaveFile(event)
+                elif answer == wx.CANCEL:
+                    return
+            x = x + 1
+    
         event.Skip()
 
     #**********************************************************************************
@@ -1221,7 +1161,30 @@ class MainFrame(wx.Frame):
             dir = d.GetPath()
         d.Destroy()
         return dir
-
+        
+    def RestoreWinInfo(self) :    
+        WindowWidth = 800
+        WindowHeight = 600
+        wasMaximized = 0
+        
+        if not os.path.exists(config.AppDataDir + "/EasyPython.sizeandposition.dat"):
+                return
+        try:
+            f = file(config.AppDataDir + "/EasyPython.sizeandposition.dat", 'r')
+            text = f.read()
+            if text:
+                values = map(int, text.split('\n'))
+                if len (values) == 5:
+                    WindowWidth, WindowHeight, WindowX, WindowY, wasMaximized = values
+                    self.SetSize((WindowWidth, WindowHeight))
+                    self.Move(wx.Point(WindowX, WindowY))
+                    if wasMaximized == 1:
+                        wx.CallAfter(self.Maximize)
+            f.close()
+        except:
+            pass
+            
+        
 #*******************************************************************************************************
 if __name__ == '__main__':
     app = Application(MainFrame)
