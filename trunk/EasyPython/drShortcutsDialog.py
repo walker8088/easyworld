@@ -227,7 +227,7 @@ class drShortcutsDialog(wx.Dialog):
         self.listSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.ignoreSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.shortcutsdirectory = parent.shortcutsdirectory
+        self.AppDataDir = parent.AppDataDir
 
         self.ShortcutsArray = [[], [], []]
 
@@ -462,7 +462,7 @@ class drShortcutsDialog(wx.Dialog):
 
     def OnbtnSave(self, event):
         #STC
-        shortcutsfile = self.shortcutsdirectory + "/stcshortcuts.dat"
+        shortcutsfile = self.AppDataDir + "/stcshortcuts.dat"
         try:
             drShortcutsFile.WriteShortcuts(shortcutsfile, self.ShortcutsArray[1], self.parent.STCShortcutNames, "", False)
         except:
@@ -474,7 +474,7 @@ class drShortcutsDialog(wx.Dialog):
             self.parent.STCUseDefault = 0
 
         #Main
-        shortcutsfile = self.shortcutsdirectory + "/shortcuts.dat"
+        shortcutsfile = self.AppDataDir + "/shortcuts.dat"
         try:
             drShortcutsFile.WriteShortcuts(shortcutsfile, self.ShortcutsArray[0], self.parent.ShortcutNames, self.txtIgnore.GetValue())
         except:
@@ -482,7 +482,7 @@ class drShortcutsDialog(wx.Dialog):
             return
 
         #DrScripts
-        shortcutsfile = self.shortcutsdirectory + "/drscript.shortcuts.dat"
+        shortcutsfile = self.AppDataDir + "/drscript.shortcuts.dat"
         try:
             drShortcutsFile.WriteShortcuts(shortcutsfile, self.ShortcutsArray[2], self.parent.DrScriptShortcutNames, "", False)
         except:

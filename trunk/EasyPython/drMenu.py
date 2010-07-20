@@ -32,7 +32,7 @@ class drMenu(wx.Menu):
         wx.Menu.__init__(self)
 
         self.parent = parent
-        self.bitmapdirectory = config.programdirectory + "/bitmaps/16/"
+        self.bitmapdirectory = config.AppDir + "/bitmaps/16/"
 
     def Append(self, id, label, LaunchesDialog = False, AmpersandAt = -1, AbsoluteLabel=''):
         ''' Appends the item, any applicable bitmap, and also any keyboard shortcut. '''

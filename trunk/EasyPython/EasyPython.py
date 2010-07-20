@@ -21,6 +21,7 @@ from PluginManager import *
 from ShortcutManager import *
 
 from drPrompt import *
+from drPrinter import *
 
 from drSourceBrowser import drSourceBrowserPanel
 
@@ -77,10 +78,8 @@ class MainFrame(wx.Frame):
         self.runPrompt = DrPrompt(self)
         self.infobook.AddPage(self.runPrompt, u"程序输出")
         
-        '''
         glob.LoadPopUpFile()
         self.Printer = DrPrinter(self)
-        '''
         
         self.Bind(wx.EVT_END_PROCESS,  self.OnProcessEnded, id=-1)
         
@@ -134,11 +133,15 @@ class MainFrame(wx.Frame):
     def CreateActions(self) :
         acts = Actions(self)
         
-        acts.AddAction("new",      u'新建文件', self.OnNew)
-        acts.AddAction("open",     u'打开文件', self.OnOpen)
-        acts.AddAction("save",     u'保存文件', self.OnSave)
+        acts.AddAction("new",      u'新建文件', self.OnNewFile)
+        acts.AddAction("open",     u'打开文件', self.OnOpenFile)
+        acts.AddAction("save",     u'保存文件', self.OnSaveFile)
         acts.AddAction("save_all", u'全部保存', self.OnSaveAll)
-        acts.AddAction("print",    u'打印',    self.OnPrint)
+        acts.AddAction("close",    u'关闭文件', self.OnCloseFile)
+        acts.AddAction("close_all",             u'关闭文件', self.OnCloseAll)
+        acts.AddAction("close_all_others",      u'关闭文件', self.OnCloseAllOthers)
+        
+        acts.AddAction("print",    u'打印',    self.OnPrintFile)
         
         acts.AddAction("cut",   u'剪切', self.OnCut)
         acts.AddAction("copy",  u'复制', self.OnCopy)
@@ -163,9 +166,9 @@ class MainFrame(wx.Frame):
         wasMaximized = 0
         
         if config.prefs.rememberwindowsizeandposition:
-            if os.path.exists(config.datdirectory + "/EasyPython.sizeandposition.dat"):
+            if os.path.exists(config.AppDataDir + "/EasyPython.sizeandposition.dat"):
                 try:
-                    f = file(config.datdirectory + "/EasyPython.sizeandposition.dat", 'r')
+                    f = file(config.AppDataDir + "/EasyPython.sizeandposition.dat", 'r')
                     text = f.read()
                     if text:
                         values = map(int, text.split('\n'))
@@ -183,29 +186,34 @@ class MainFrame(wx.Frame):
     def CreateMenus(self):
         self.filemenu = drMenu(self)
         self.filemenu.Append(self.ID_NEW, u'新建(New)', False, 0)
-        self.Bind(wx.EVT_MENU,  self.OnNew, id=self.ID_NEW)
+        self.Bind(wx.EVT_MENU,  self.OnNewFile, id=self.ID_NEW)
         self.filemenu.Append(self.ID_OPEN, u'打开(Open)', True, 0)
-        self.Bind(wx.EVT_MENU,  self.OnOpen, id=self.ID_OPEN)
+        self.Bind(wx.EVT_MENU,  self.OnOpenFile, id=self.ID_OPEN)
         
         self.RecentMenu = wx.Menu()
         self.CreateRecentFileMenu()
         self.filemenu.AppendMenu(self.ID_OPEN_RECENT, u"打开最近的文件(Op&en Recent)", self.RecentMenu)
-        self.filemenu.Append(self.ID_RELOAD, u'重新加载文件(Reload File)', False, 0)
-        #self.filemenu.Append(self.ID_RESTORE_FROM_BACKUP, u'从备份中恢复(Restore From Backup)')
+        
         self.filemenu.AppendSeparator()
         self.filemenu.Append(self.ID_CLOSE, u'关闭(Close)', False, 0)
-        self.filemenu.AppendSeparator()
-        self.filemenu.Append(self.ID_CLEAR_RECENT, u'清除最近打开的文件列表(Clear Recent File List)')
+        self.Bind(wx.EVT_MENU,  self.OnCloseFile, id=self.ID_CLOSE)
         self.filemenu.AppendSeparator()
         self.filemenu.Append(self.ID_SAVE, u'保存(Save)', False, 0)
+        self.Bind(wx.EVT_MENU,  self.OnSaveFile, id=self.ID_SAVE)
         self.filemenu.Append(self.ID_SAVE_AS, u'另存为(Save As)', True, 5)
-        self.filemenu.Append(self.ID_SAVE_COPY, u'拷贝另存为(Save A Copy)', True, 2)
+        self.Bind(wx.EVT_MENU,  self.OnSaveAs, id=self.ID_SAVE_AS)
         self.filemenu.AppendSeparator()
-        #self.filemenu.Append(self.ID_PRINT_SETUP, u'打印设置(Print Setup)', True)
         self.filemenu.Append(self.ID_PRINT, u'打印文件(Print File)', True, 0)
-        #self.filemenu.Append(self.ID_PRINTPROMPT, u'打印设置(Print Prompt)', True)
         self.filemenu.AppendSeparator()
         self.filemenu.Append(self.ID_EXIT, u'结束退出(Exit)', False, 1)
+        
+        #self.Bind(wx.EVT_MENU,  self.OnCloseAll, id=self.ID_CLOSE_ALL)
+        #self.Bind(wx.EVT_MENU,  self.OnCloseAllOthers, id=self.ID_CLOSE_ALL_OTHER_DOCUMENTS)
+
+        self.Bind(wx.EVT_MENU,  self.OnSaveAll, id=self.ID_SAVE_ALL)
+        self.Bind(wx.EVT_MENU,  self.OnPrintFile, id=self.ID_PRINT)
+        
+        self.Bind(wx.EVT_MENU,  self.OnExit, id=self.ID_EXIT)
 
         self.commentmenu = drMenu(self)
         self.commentmenu.Append(self.ID_COMMENT_REGION, u'注释(Comment)')
@@ -228,29 +236,25 @@ class MainFrame(wx.Frame):
 
         self.casemenu = drMenu(self)
         self.casemenu.Append(self.ID_UPPERCASE, u'大写(Uppercase)', False, 0)
+        self.Bind(wx.EVT_MENU,  self.OnUppercase, id=self.ID_UPPERCASE)
         self.casemenu.Append(self.ID_LOWERCASE, u'小写(Lowercase)', False, 0)
-
+        self.Bind(wx.EVT_MENU,  self.OnLowercase, id=self.ID_LOWERCASE)
+        
         self.editmenu = drMenu(self)
-
+              
         self.editmenu.Append(self.ID_UNDO, u'撤销(Undo)', False, 0)
+        self.Bind(wx.EVT_MENU,  self.OnUndo, id=self.ID_UNDO)
         self.editmenu.Append(self.ID_REDO, u'重做(Redo)', False, 1)
+        self.Bind(wx.EVT_MENU,  self.OnRedo, id=self.ID_REDO)
         self.editmenu.AppendSeparator()
-
-        #Order changed by EasyPython
-        ##for keyboard macro (Keyboardmacro) recording; #ugly hack franz # removed again
 
         self.editmenu.Append(self.ID_CUT, u'剪切(Cut)')
         self.editmenu.Append(self.ID_COPY, u'复制(Copy)')
         self.editmenu.Append(self.ID_PASTE, u'粘帖(Paste)')
-        ##end patch keyboard macro recording #end ugly hack franz # removed again
-
         self.editmenu.Append(self.ID_DELETE, u'删除(Delete)')
 
         self.editmenu.AppendSeparator()
         self.editmenu.Append(self.ID_SELECT_ALL, u'全选(Select All)')
-        #self.editmenu.AppendSeparator()
-        #self.editmenu.Append(self.ID_INSERT_SEPARATOR, u'插入分隔符(Insert Separator)', True)
-        #self.editmenu.Append(self.ID_INSERT_REGEX, u'Insert Regular Expression', True)
         self.editmenu.AppendSeparator()
         self.editmenu.Append(self.ID_FIND_AND_COMPLETE, u'查找并完成(Find And Complete)')
         self.editmenu.AppendSeparator()
@@ -258,6 +262,19 @@ class MainFrame(wx.Frame):
         #self.editmenu.AppendMenu(self.ID_WHITESPACE, u"空白(&Whitespace)", self.whitespacemenu)
         self.editmenu.AppendMenu(self.ID_CASE, u"大小写(Case)", self.casemenu)
 
+        self.Bind(wx.EVT_MENU,  self.OnMenuFind, id=self.ID_FIND)
+        self.Bind(wx.EVT_MENU,  self.OnMenuFindNext, id=self.ID_FIND_NEXT)
+        self.Bind(wx.EVT_MENU,  self.OnMenuFindPrevious, id=self.ID_FIND_PREVIOUS)
+        self.Bind(wx.EVT_MENU,  self.OnMenuReplace, id=self.ID_REPLACE)
+
+        self.Bind(wx.EVT_MENU,  self.OnSelectAll, id=self.ID_SELECT_ALL)
+
+        self.Bind(wx.EVT_MENU,  self.OnIndentRegion, id=self.ID_INDENT_REGION)
+        self.Bind(wx.EVT_MENU,  self.OnDedentRegion, id=self.ID_DEDENT_REGION)
+
+        self.Bind(wx.EVT_MENU,  self.OnCommentRegion, id=self.ID_COMMENT_REGION)
+        self.Bind(wx.EVT_MENU,  self.OnUnCommentRegion, id=self.ID_UNCOMMENT_REGION)
+        
         self.searchmenu = drMenu(self)
         self.searchmenu.Append(self.ID_FIND, u'查找(Find)', True, 0)
         self.searchmenu.Append(self.ID_FIND_NEXT, u'查找下一个(Find Next)', False, 5)
@@ -271,16 +288,6 @@ class MainFrame(wx.Frame):
         self.HightLightMenu.Check(self.ID_HIGHLIGHT_PYTHON, True)
         
         self.viewmenu = drMenu(self)
-        #self.viewmenu.Append(self.ID_GOTO, u'到(Go To)', True, 0)
-        #self.viewmenu.AppendMenu(self.ID_GOTO_MENU, u"到(Go To)", self.gotomenu)
-        #self.viewmenu.AppendSeparator()
-        #self.viewmenu.Append(self.ID_ZOOM_IN, u'缩小(Zoom In)', False, 5)
-        #self.viewmenu.Append(self.ID_ZOOM_OUT, u'放大(Zoom Out)', False, 5)
-        #self.viewmenu.AppendSeparator()
-        #self.viewmenu.AppendMenu(self.ID_FOLDING, u"折叠(&Folding)", self.foldmenu)
-        #self.viewmenu.AppendSeparator()
-        #self.viewmenu.AppendMenu(self.ID_VIEW_IN_PANEL, u"&View In Panel", self.viewinpanelmenu)
-        #self.viewmenu.AppendSeparator()
         self.viewmenu.AppendMenu(self.ID_HIGHLIGHT, u"语法高亮(&Syntax Highlighting)", self.HightLightMenu)
         self.viewmenu.AppendSeparator()
         self.viewmenu.Append(self.ID_TOGGLE_SOURCEBROWSER, u'切换源代码浏览器(Toggle Source Browser)')
@@ -290,38 +297,39 @@ class MainFrame(wx.Frame):
         self.viewmenu.Append(self.ID_TOGGLE_VIEWWHITESPACE, u'Toggle View Whitespace', False, 12)
         #end limodou
         self.viewmenu.Append(self.ID_TOGGLE_PROMPT, u'Toggle Prompt')
-
+        
+        self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingPython, id=self.ID_HIGHLIGHT_PYTHON)
+        self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingHTML, id=self.ID_HIGHLIGHT_HTML)
+        self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingText, id=self.ID_HIGHLIGHT_PLAIN_TEXT)
+       
         self.ProgramMenu = drMenu(self)
         self.ProgramMenu.Append(self.ID_CHECK_SYNTAX, u'语法检查(Check Syntax)')
         self.ProgramMenu.AppendSeparator()
         self.ProgramMenu.Append(self.ID_RUN, u'运行(Run)')
-        self.ProgramMenu.Append(self.ID_SET_ARGS, u'设定参数(Set Arguments)', True)
-        self.ProgramMenu.Append(self.ID_PYTHON, 'Python', False, -1, u'启动Python解释器(Open Python Interpreter)')
         self.ProgramMenu.Append(self.ID_END, u'结束(End)')
-        self.ProgramMenu.Append(self.ID_CLOSE_PROMPT, u'关闭Python解释器(Close Prompt)')
-       
+        #self.ProgramMenu.AppendSeparator()
+        self.ProgramMenu.Append(self.ID_SET_ARGS, u'设定运行参数(Set Arguments)', True)
+        self.ProgramMenu.AppendSeparator()
+        self.ProgramMenu.Append(self.ID_PYTHON, u'运行Python解释器(Run Python Interpreter)')
+        #self.ProgramMenu.Append(self.ID_CLOSE_PROMPT, u'关闭Python解释器(Close Prompt)')
+        #self.Bind(wx.EVT_MENU,  self.OnClosePrompt, id=self.ID_CLOSE_PROMPT)
+
+        self.Bind(wx.EVT_MENU,  self.OnRun, id=self.ID_RUN)
+        self.Bind(wx.EVT_MENU,  self.OnSetArgs, id=self.ID_SET_ARGS)
+        self.Bind(wx.EVT_MENU,  self.OnPython, id=self.ID_PYTHON)
+        self.Bind(wx.EVT_MENU,  self.OnEnd, id=self.ID_END)
+        self.Bind(wx.EVT_MENU,  self.OnCheckSyntax, id=self.ID_CHECK_SYNTAX)
+        
         self.optionsmenu = drMenu(self)
         self.optionsmenu.Append(self.ID_PREFS, u'参数设定(Preferences)', True, 0)
-        #self.optionsmenu.Append(self.ID_SHORTCUTS, u'定制快捷键(Customize Shortcuts)', True, 0)
-        #self.optionsmenu.Append(self.ID_POPUP, u'定制弹出窗口(Customize Pop Up Menu)', True)
-        self.optionsmenu.Append(self.ID_CUSTOMIZE_TOOLBAR, u'定制工具条(Customize ToolBar)', True)
-        #self.optionsmenu.AppendSeparator()
-        #self.optionsmenu.Append(self.ID_EDIT_BOOKMARKS, u'编辑收藏夹(Edit Bookmarks)', True, 0)
-        #self.optionsmenu.Append(self.ID_EDIT_SCRIPT_MENU, u'编辑脚本菜单(Edit &Script Menu)', True)
-        #self.optionsmenu.AppendSeparator()
+        self.Bind(wx.EVT_MENU,  self.OnPrefs, id=self.ID_PREFS)
         
         self.helpmenu = drMenu(self)
         self.helpmenu.Append(self.ID_ABOUT, u"关于(&About) EasyPython...")
+        self.Bind(wx.EVT_MENU,  self.OnViewAbout, id=self.ID_ABOUT)
         self.helpmenu.AppendSeparator()
         self.helpmenu.Append(self.ID_HELP, 'Help', True, 0, u'EasyPython 帮助(&Help)...')
-        #self.helpmenu.AppendSeparator()
-        #self.helpmenu.Append(self.ID_PYTHON_DOCS, 'View Python Docs', True)
-        #self.helpmenu.Append(self.ID_WXWIDGETS_DOCS, 'View WxWidgets Docs', True)
-        #self.helpmenu.Append(self.ID_REHOWTO_DOCS, 'View Regular Expression Howto', True)
-
-        #if config.prefs.debugmodus:
-        #    self.helpmenu.AppendSeparator()
-        #    self.helpmenu.Append(self.ID_INSPECT_TOOL, self.GetMenuLabel(u'检查工具(&Inspect Tool)'))
+        self.Bind(wx.EVT_MENU,  self.OnViewHelp, id=self.ID_HELP)
 
         self.menuBar = wx.MenuBar()
        
@@ -333,212 +341,24 @@ class MainFrame(wx.Frame):
         self.menuBar.Append(self.searchmenu, menuBarNames[2])
         self.menuBar.Append(self.viewmenu, menuBarNames[3])
         self.menuBar.Append(self.ProgramMenu, menuBarNames[4])
-        #self.menuBar.Append(self.bookmarksmenu, menuBarNames[5])
-        #self.menuBar.Append(self.drscriptmenu, menuBarNames[6])
         self.menuBar.Append(self.optionsmenu, menuBarNames[7])
         self.menuBar.Append(self.helpmenu, menuBarNames[8])
 
         self.SetMenuBar(self.menuBar)
-        
-        self.Bind(wx.EVT_MENU,  self.OnClose, id=self.ID_CLOSE)
-        self.Bind(wx.EVT_MENU,  self.OnCloseAllDocuments, id=self.ID_CLOSE_ALL)
-        self.Bind(wx.EVT_MENU,  self.OnCloseAllOtherDocuments, id=self.ID_CLOSE_ALL_OTHER_DOCUMENTS)
-
-        self.Bind(wx.EVT_MENU,  self.OnClearRecent, id=self.ID_CLEAR_RECENT)
-        self.Bind(wx.EVT_MENU,  self.OnSave, id=self.ID_SAVE)
-        self.Bind(wx.EVT_MENU,  self.OnSaveAs, id=self.ID_SAVE_AS)
-        self.Bind(wx.EVT_MENU,  self.OnSaveAll, id=self.ID_SAVE_ALL)
-        self.Bind(wx.EVT_MENU,  self.OnPrintSetup, id=self.ID_PRINT_SETUP)
-        self.Bind(wx.EVT_MENU,  self.OnPrint, id=self.ID_PRINT)
-        
-        self.Bind(wx.EVT_MENU,  self.OnExit, id=self.ID_EXIT)
-
-        self.Bind(wx.EVT_MENU,  self.OnMenuFind, id=self.ID_FIND)
-        self.Bind(wx.EVT_MENU,  self.OnMenuFindNext, id=self.ID_FIND_NEXT)
-        self.Bind(wx.EVT_MENU,  self.OnMenuFindPrevious, id=self.ID_FIND_PREVIOUS)
-        self.Bind(wx.EVT_MENU,  self.OnMenuReplace, id=self.ID_REPLACE)
-
-        self.Bind(wx.EVT_MENU,  self.OnSelectAll, id=self.ID_SELECT_ALL)
-
-        self.Bind(wx.EVT_MENU,  self.OnCommentRegion, id=self.ID_COMMENT_REGION)
-        self.Bind(wx.EVT_MENU,  self.OnUnCommentRegion, id=self.ID_UNCOMMENT_REGION)
-
-        self.Bind(wx.EVT_MENU,  self.OnIndentRegion, id=self.ID_INDENT_REGION)
-        self.Bind(wx.EVT_MENU,  self.OnDedentRegion, id=self.ID_DEDENT_REGION)
-
-        self.Bind(wx.EVT_MENU,  self.OnCleanUpTabs, id=self.ID_CLEAN_UP_TABS)
-        self.Bind(wx.EVT_MENU,  self.OnCleanUpSpaces, id=self.ID_CLEAN_UP_SPACES)
-
-        self.Bind(wx.EVT_MENU,  self.OnFormatUnixMode, id=self.ID_UNIXMODE)
-        self.Bind(wx.EVT_MENU,  self.OnFormatWinMode, id=self.ID_WINMODE)
-        self.Bind(wx.EVT_MENU,  self.OnFormatMacMode, id=self.ID_MACMODE)
-        
-        self.Bind(wx.EVT_MENU,  self.OnUppercase, id=self.ID_UPPERCASE)
-        self.Bind(wx.EVT_MENU,  self.OnLowercase, id=self.ID_LOWERCASE)
-        self.Bind(wx.EVT_MENU,  self.OnUndo, id=self.ID_UNDO)
-        self.Bind(wx.EVT_MENU,  self.OnRedo, id=self.ID_REDO)
-
-        self.Bind(wx.EVT_MENU,  self.OnSourceBrowserGoTo, id=self.ID_SOURCEBROWSER_GOTO)
-
-        self.Bind(wx.EVT_MENU,  self.OnZoomIn, id=self.ID_ZOOM_IN)
-        self.Bind(wx.EVT_MENU,  self.OnZoomOut, id=self.ID_ZOOM_OUT)
-
-        self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingPython, id=self.ID_HIGHLIGHT_PYTHON)
-        self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingHTML, id=self.ID_HIGHLIGHT_HTML)
-        self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingText, id=self.ID_HIGHLIGHT_PLAIN_TEXT)
-        
+                             
         self.Bind(wx.EVT_MENU,  self.OnToggleSourceBrowser, id=self.ID_TOGGLE_SOURCEBROWSER)
         self.Bind(wx.EVT_MENU,  self.OnToggleViewWhiteSpace, id=self.ID_TOGGLE_VIEWWHITESPACE)
         self.Bind(wx.EVT_MENU,  self.OnTogglePrompt, id=self.ID_TOGGLE_PROMPT)
 
-        self.Bind(wx.EVT_MENU,  self.OnRun, id=self.ID_RUN)
-        self.Bind(wx.EVT_MENU,  self.OnSetArgs, id=self.ID_SET_ARGS)
-        self.Bind(wx.EVT_MENU,  self.OnPython, id=self.ID_PYTHON)
-        self.Bind(wx.EVT_MENU,  self.OnEnd, id=self.ID_END)
-        self.Bind(wx.EVT_MENU,  self.OnCheckSyntax, id=self.ID_CHECK_SYNTAX)
-        self.Bind(wx.EVT_MENU,  self.OnClosePrompt, id=self.ID_CLOSE_PROMPT)
-
-        self.Bind(wx.EVT_MENU,  self.OnPrefs, id=self.ID_PREFS)
-        self.Bind(wx.EVT_MENU,  self.OnCustomizePopUpMenu, id=self.ID_POPUP)
-        self.Bind(wx.EVT_MENU,  self.OnCustomizeToolBar, id=self.ID_CUSTOMIZE_TOOLBAR)
-        
-        self.Bind(wx.EVT_MENU,  self.OnViewAbout, id=self.ID_ABOUT)
-        self.Bind(wx.EVT_MENU,  self.OnViewHelp, id=self.ID_HELP)
-
-    def OnCustomizePopUpMenu(self, event):
-        from drPopUpMenuDialog import drPopUpMenuDialog
-        d = drPopUpMenuDialog(self)
-        d.ShowModal()
-        d.Destroy()
-
-    def OnCustomizeToolBar(self, event):
-        from drToolBarDialog import drToolBarDialog
-        d = drToolBarDialog(self)
-        d.ShowModal()
-        d.Destroy()
-        
     def OnActivate(self):
         glob.docMgr.UpdateDocs()
     
-    def OnCheckSyntax(self, event):
-        if glob.docMgr.CheckSyntax(glob.docMgr.selection):
-            self.SetStatusText(u'语法检查通过', 2)
+    def OnKeyDown(self, event):
+        self.RunShortcuts(event)
+        event.Skip()
 
-    def OnCleanUpSpaces(self, event):
-        d = wx.TextEntryDialog(self, "Replace a tab with how many spaces?:", "Replace Tabs With Spaces", str(config.prefs.doctabwidth[0]))
-        answer = d.ShowModal()
-        value = d.GetValue()
-        d.Destroy()
-        if answer == wx.ID_OK:
-            wx.BeginBusyCursor()
-            wx.Yield()
-            try:
-                x = int(value)
-            except:
-                utils.ShowMessage("You must enter an integer (number, eg 1,2,128)", "EasyPython")
-                wx.EndBusyCursor()
-                return
-            if (x > -1) and (x <= 128):
-                glob.docMgr.currDoc.SetToSpaces(x)
-            else:
-                utils.ShowMessage("That number seems WAY too high.  Just what are you doing, replacing  a tab with more than 128 spaces?", "EasyPython Foolish Error")
-                wx.EndBusyCursor()
-                return
-            glob.docMgr.currDoc.OnModified(None)
-            wx.EndBusyCursor()
-
-    def OnCleanUpTabs(self, event):
-        d = wx.TextEntryDialog(self, "Number of spaces to replace with a tab:", "Replace Spaces With Tabs", str(config.prefs.doctabwidth[0]))
-        answer = d.ShowModal()
-        value = d.GetValue()
-        d.Destroy()
-        if answer == wx.ID_OK:
-            wx.BeginBusyCursor()
-            wx.Yield()
-            try:
-                x = int(value)
-            except:
-                utils.ShowMessage("You must enter an integer (number, eg 1,2,128)", "EasyPython")
-                wx.EndBusyCursor()
-                return
-            if (x > -1) and (x <= 128):
-                glob.docMgr.currDoc.SetToTabs(x)
-            else:
-                utils.ShowMessage("That number seems WAY too high.  Just what are you doing, replacing more than 128 spaces with a tab?", "EasyPython Foolish Error")
-                wx.EndBusyCursor()
-                return
-            glob.docMgr.currDoc.OnModified(None)
-            wx.EndBusyCursor()
-
-    def OnClearRecent(self, event):
-        glob.RecentFiles = []
-        self.DestroyRecentFileMenu()
-        glob.WriteRecentFiles()
-
-    def OnClose(self, event):
-        if glob.docMgr.selection >= 0 :
-            glob.docMgr.CloseDoc(glob.docMgr.selection)
-    
-    def OnCloseAllDocuments(self, event):
-        x = len(glob.docMgr.docs) - 1
-        while x > -1:
-            glob.docMgr.SelectDoc(x)
-            if glob.docMgr.currDoc.GetModify():
-                if utils.Ask(u'你需要保存"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                    self.OnSave(event)
-            glob.docMgr.CloseDoc(i)
-            x = x - 1
-
-    def OnCloseAllOtherDocuments(self, event):
-        if not glob.docMgr.currDoc.filename:
-            return
-        farray = map(lambda document: document.filename, glob.docMgr.docs)
-        try:
-            i = farray.index(glob.docMgr.currDoc.filename)
-        except:
-            return
-
-        x = len(farray) - 1
-        while x > -1:
-            if x != i:
-                glob.docMgr.SelectDoc(x)
-                if glob.docMgr.currDoc.GetModify():
-                    if utils.Ask(u'你需要保存文件"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                        self.OnSave(event)
-                self.OnClose(event)
-            x = x - 1
-
-    def OnClosePrompt(self, event):
-        oldpos = self.promptPosition
-        oldfinder = self.prompts[oldpos].Finder
-        self.OnEnd(None)
-
-        if len(self.prompts) > 1:
-            self.prompts.pop(self.promptPosition)
-
-            self.infobook.DeletePage(self.promptPosition)
-            if self.promptPosition > 0:
-                self.promptPosition = self.promptPosition - 1
-            elif len(self.prompts) > 1:
-                if self.promptPosition > 0:
-                    self.promptPosition = self.promptPosition + 1
-            self.setPromptTo(self.promptPosition)
-            if oldpos > self.promptPosition:
-                if self.txtPrompt.Finder:
-                    self.txtPrompt.Finder.Copy(oldfinder)
-        else:
-            self.txtPrompt.SetText("")
-            self.txtPrompt.EmptyUndoBuffer()
-            self.txtPrompt.SetSavePoint()
-            self.UpdateMenuAndToolbar()
-            self.infobook.SetPageText(self.promptPosition, "Prompt")
-            #The set size stuff ensures that wx.widgets repaints the tab.
-            x, y = self.GetSizeTuple()
-            self.SetSize((x-1, y-1))
-            self.SetSize((x, y))
-
-
-        self.infobook.OnPageChanged(None)
+    def OnExit(self, event):
+        self.Close(False)
 
     def OnCloseW(self, event):
         glob.IgnoreEvents = True
@@ -586,7 +406,7 @@ class MainFrame(wx.Frame):
 
             #if not self.IsMaximized(): #else some problems appears (?)
             try:
-                f = file(config.datdirectory + "/EasyPython.sizeandposition.dat", 'w')
+                f = file(config.AppDataDir + "/EasyPython.sizeandposition.dat", 'w')
                 x, y = self.GetSizeTuple()
                 px, py = self.GetPositionTuple()
                 f.write(str(x) + '\n' + str(y) + '\n' + str(px) + '\n' + str(py) + '\n' + str(wasMaximized))
@@ -596,88 +416,11 @@ class MainFrame(wx.Frame):
 
         event.Skip()
 
-    def OnCommentRegion(self, event):
-        glob.docMgr.CommentRegion()
-    
-    def OnUnCommentRegion(self, event):
-        glob.docMgr.UnCommentRegion()
-            
-    def OnDedentRegion(self, event):
-        glob.docMgr.DedentRegion()
-    
-    def OnEnd(self, event):
-        if self.txtPrompt.pid != -1:
-            self.infobook.SetPageImage(self.promptPosition, 2)
-            self.UpdateMenuAndToolbar()
-            wx.Process_Kill(self.txtPrompt.pid, wx.SIGKILL)
-            self.txtPrompt.SetReadOnly(1)
-
-    def OnExit(self, event):
-        self.Close(False)
-
-    def OnFormatMacMode(self, event):
-        glob.docMgr.FormatMode("Mac")
-       
-    def OnFormatUnixMode(self, event):
-        glob.docMgr.FormatMode("Unix")
-        
-    def OnFormatWinMode(self, event):
-        glob.docMgr.FormatMode("Win")
-        
-    def OnIndentRegion(self, event):
-        self.docMgr.IndentRegion()
-        
-    def OnKeyDown(self, event):
-        self.RunShortcuts(event)
-        event.Skip()
-
-    def OnMenuFind(self, event):
-        stc = self.GetActiveSTC()
-        d = drFindReplaceDialog(self, -1, "Find", stc)
-        d.SetOptions(self.FindOptions)
-        if stc.GetSelectionStart() < stc.GetSelectionEnd():
-            d.SetFindString(stc.GetSelectedText())
-        elif config.prefs.findreplaceundercursor:
-            pos = stc.GetCurrentPos()
-            d.SetFindString(stc.GetTextRange(stc.WordStartPosition(pos, 1), stc.WordEndPosition(pos, 1)))
-        d.Show(True)
-
-    def OnMenuFindNext(self, event):
-        self.GetActiveSTC().Finder.DoFindNext()
-
-    def OnMenuFindPrevious(self, event):
-        self.GetActiveSTC().Finder.DoFindPrevious()
-
-    def OnMenuReplace(self, event):
-        stc = self.GetActiveSTC()
-        d = drFindReplaceDialog(self, -1, "Replace", stc, 1)
-        d.SetOptions(glob.ReplaceOptions)
-        if stc.GetSelectionStart() < stc.GetSelectionEnd():
-            d.SetFindString(stc.GetTextRange(stc.GetSelectionStart(), stc.GetSelectionEnd()))
-        else:
-            d.SetFindString(stc.Finder.GetFindText())
-        d.Show(True)
-
-    def OnNew(self, event):
+    #**********************************************************************************
+    def OnNewFile(self, event):
         glob.docMgr.NewDoc()
         
-    def OnNewPrompt(self, event):
-        l = len(self.prompts)
-
-        nextpage = drPanel(self.infobook, self.ID_APP)
-        self.prompts.append(DrPrompt(nextpage, self.ID_APP, self))
-        nextpage.SetSTC(self.prompts[l])
-        
-        self.infobook.AddPage(nextpage, "Prompt")
-
-        self.prompts[l].Finder.Copy(self.txtPrompt.Finder)
-
-        self.setPromptTo(l)
-        
-        self.txtPrompt.SetupPrefsPrompt(1)
-        self.txtPrompt.SetSTCFocus(True)
-
-    def OnOpen(self, event):
+    def OnOpenFile(self, event):
         #dlg = drFileDialog.FileDialog(self, "Open", config.prefs.wildcard, MultipleSelection=True, ShowRecentFiles=True)
         dlg = wx.FileDialog(self, u"打开文件", wildcard = u"Python 文件(*.py;*.pyw)|*.py;*.pyw|所有文件 (*.*)|*.*")
         dlg.SetDirectory(glob.CurrDir)
@@ -695,13 +438,11 @@ class MainFrame(wx.Frame):
         recentmenuindex = event.GetId() - self.ID_RECENT_FILES_BASE
         glob.docMgr.OpenOrSwitchToFile(glob.RecentFiles[recentmenuindex])
 
-    def OnSave(self, event):
+    def OnSaveFile(self, event):
         if not glob.docMgr.currDoc.filename:
             return self.OnSaveAs(event)
         else:
             glob.docMgr.SaveFile(glob.docMgr.selection)
-            if config.prefs.sourcebrowserautorefreshonsave and (self.SourceBrowser is not None):
-                self.SourceBrowser.Browse()
         return True
 
     def OnSaveAs(self, event):
@@ -711,7 +452,7 @@ class MainFrame(wx.Frame):
         dlg.SetDirectory(glob.CurrDir)
         
         if dlg.ShowModal() != wx.ID_OK:
-            return 
+            return False 
             
         old = glob.docMgr.currDoc.filename
         
@@ -723,7 +464,7 @@ class MainFrame(wx.Frame):
         
         if not glob.docMgr.SaveFile(glob.docMgr.selection, not (old == glob.docMgr.currDoc.filename)):
             glob.docMgr.currDoc.filename = old
-            return
+            return False
         
         #self.UpdateMenuAndToolbar()
         self.docMgr.UpdateTitle()
@@ -741,8 +482,9 @@ class MainFrame(wx.Frame):
         glob.WriteRecentFiles()
         self.CreateRecentFileMenu()
         
-        
         dlg.Destroy()
+        
+        return True
         
     def OnSaveAll(self, event):
         oldpos = glob.docMgr.selection
@@ -754,7 +496,7 @@ class MainFrame(wx.Frame):
             for document in glob.docMgr.docs:
                 if glob.docMgr.docs[x].GetModify():
                     tosaveArray.append(x)
-                    tosaveLabels.append(glob.docMgr.docs[x].GetFilenameTitle())
+                    tosaveLabels.append(glob.docMgr.docs[x].GetFileNameTitle())
                 x += 1
             if not tosaveLabels:
                 return
@@ -790,16 +532,116 @@ class MainFrame(wx.Frame):
 
         return True
 
-    def OnPrint(self, event):
-        self.Printer.Print(glob.docMgr.currDoc.GetText(), glob.docMgr.currDoc.filename, config.prefs.printdoclinenumbers)
-
-    def OnPrintSetup(self, event):
-        self.Printer.PrinterSetup(self)
+    def OnCloseFile(self, event):
+        if glob.docMgr.selection >= 0 :
+            glob.docMgr.CloseDoc(glob.docMgr.selection)
     
+    def OnCloseAll(self, event):
+        x = len(glob.docMgr.docs) - 1
+        while x > -1:
+            glob.docMgr.SelectDoc(x)
+            if glob.docMgr.currDoc.GetModify():
+                if utils.Ask(u'你需要保存"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
+                    self.OnSave(event)
+            glob.docMgr.CloseDoc(i)
+            x = x - 1
+
+    def OnCloseAllOthers(self, event):
+        if not glob.docMgr.currDoc.filename:
+            return
+        farray = map(lambda document: document.filename, glob.docMgr.docs)
+        try:
+            i = farray.index(glob.docMgr.currDoc.filename)
+        except:
+            return
+
+        x = len(farray) - 1
+        while x > -1:
+            if x != i:
+                glob.docMgr.SelectDoc(x)
+                if glob.docMgr.currDoc.GetModify():
+                    if utils.Ask(u'你需要保存文件"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
+                        self.OnSaveFile(event)
+                self.OnClose(event)
+            x = x - 1
+        
+    def OnPrintFile(self, event):
+        if not glob.docMgr.currDoc :
+                return
+        self.Printer.Print(glob.docMgr.currDoc.GetText(), glob.docMgr.currDoc.filename, 1)
+    
+    #**********************************************************************************
+    def OnCheckSyntax(self, event):
+        if glob.docMgr.selection < 0 :
+                return
+        if glob.docMgr.CheckSyntax(glob.docMgr.selection):
+            self.SetStatusText(u'语法检查通过', 2)
+
+    def OnPython(self, event):
+        import win32process
+        self.handle = win32process.CreateProcess(config.pythexec,
+                config.pythexec, None, None, 0,
+                win32process.CREATE_NEW_CONSOLE, 
+                None , 
+                None,
+                win32process.STARTUPINFO()
+                )
+            
+    def OnRun(self, event):
+        if glob.docMgr.selection < 0 :
+                return
+        #patch [ 1367222 ] Improved Run Command + HTML Browser
+        if glob.docMgr.currDoc.GetModify():
+            if not utils.Ask(u"文件已经被修改了,必须保存后才能运行.\n你需要保存文件吗?", "EasyPython"):
+                return
+            if not self.OnSaveFile(event):
+                return
+            
+        if not utils.IsPythonFile(glob.docMgr.currDoc.filename):
+                return
+                
+        cwd = os.getcwd()
+        
+        cdir, filen = os.path.split(glob.docMgr.currDoc.filename)
+        try:
+            os.chdir(cdir)
+        except:
+            utils.ShowMessage(u"不能转换当前目录到:%s." % cdir, u"EasyPython运行错误")
+            return
+            
+        largs = ""
+        if (len(glob.LastProgArgs) > 0):
+                largs = ' ' + glob.LastProgArgs
+                
+        if config.PLATFORM_IS_WIN:
+                self.RunCmd((config.pythexecw + " -u " +  config.prefs.pythonargs + ' "' +
+                         glob.docMgr.currDoc.filename.replace("\\", "/") + '"' + largs),
+                         "Running " + filen, filen)
+        else:
+                self.RunCmd((config.pythexec + " -u " +  config.prefs.pythonargs + ' "' + glob.docMgr.currDoc.filename + '"'  + largs), 
+                        "Running " + filen, filen)                #patch: [ 1366679 ] Goto Line Should Not Display At Top Of Window
+        os.chdir(cwd)
+
+    def OnSetArgs(self, event):
+        d = wx.TextEntryDialog(self, "Arguments:", "EasyPython - Set Arguments", glob.LastProgArgs)
+        if d.ShowModal() == wx.ID_OK:
+            glob.LastProgArgs = d.GetValue()
+        d.Destroy()
+
+    def OnEnd(self, event):
+        return
+        if self.txtPrompt.pid != -1:
+            self.infobook.SetPageImage(self.promptPosition, 2)
+            self.UpdateMenuAndToolbar()
+            wx.Process_Kill(self.txtPrompt.pid, wx.SIGKILL)
+            self.txtPrompt.SetReadOnly(1)
+
     def OnProcessEnded(self, event):
         #Set the process info to the correct position in the array.
+    
         i = 0
         epid = event.GetPid()
+        
         try:
             i = map(lambda tprompt: tprompt.pid == epid, self.prompts).index(True)
         except:
@@ -827,13 +669,63 @@ class MainFrame(wx.Frame):
             self.infobook.SetPageImage(i, 0)
             
         glob.docMgr.currDoc.SetFocus()
-
+    
+    #**********************************************************************************
     def OnPrefs(self, event):
         from drPrefsDialog import drPrefsDialog
         d = drPrefsDialog(self, -1, "EasyPython - Preferences")
         d.ShowModal()
         d.Destroy()
-            
+        
+    #**********************************************************************************
+    def OnNewPrompt(self, event):
+        l = len(self.prompts)
+
+        nextpage = drPanel(self.infobook, self.ID_APP)
+        self.prompts.append(DrPrompt(nextpage, self.ID_APP, self))
+        nextpage.SetSTC(self.prompts[l])
+        
+        self.infobook.AddPage(nextpage, "Prompt")
+
+        self.prompts[l].Finder.Copy(self.txtPrompt.Finder)
+
+        self.setPromptTo(l)
+        
+        self.txtPrompt.SetupPrefsPrompt(1)
+        self.txtPrompt.SetSTCFocus(True)
+    
+    def OnClosePrompt(self, event):
+        oldpos = self.promptPosition
+        oldfinder = self.prompts[oldpos].Finder
+        self.OnEnd(None)
+
+        if len(self.prompts) > 1:
+            self.prompts.pop(self.promptPosition)
+
+            self.infobook.DeletePage(self.promptPosition)
+            if self.promptPosition > 0:
+                self.promptPosition = self.promptPosition - 1
+            elif len(self.prompts) > 1:
+                if self.promptPosition > 0:
+                    self.promptPosition = self.promptPosition + 1
+            self.setPromptTo(self.promptPosition)
+            if oldpos > self.promptPosition:
+                if self.txtPrompt.Finder:
+                    self.txtPrompt.Finder.Copy(oldfinder)
+        else:
+            self.txtPrompt.SetText("")
+            self.txtPrompt.EmptyUndoBuffer()
+            self.txtPrompt.SetSavePoint()
+            self.UpdateMenuAndToolbar()
+            self.infobook.SetPageText(self.promptPosition, "Prompt")
+            #The set size stuff ensures that wx.widgets repaints the tab.
+            x, y = self.GetSizeTuple()
+            self.SetSize((x-1, y-1))
+            self.SetSize((x, y))
+
+
+        self.infobook.OnPageChanged(None)
+        
     def OnTogglePrompt(self, event):
         if self.mainpanel.PromptIsVisible:
             self.mainpanel.PromptIsVisible = False
@@ -846,20 +738,11 @@ class MainFrame(wx.Frame):
                 self.toolbar.ToggleTool(self.ID_TOGGLE_PROMPT,  True)
             self.txtPrompt.SetFocus()
 
+    #**********************************************************************************
     def OnToggleSourceBrowser(self, event):
         pass
     
-    def ShowSourceBrwser(self, Yes) :
-        TODO:
-        pass
-        
     #**********************************************************************************
-    def OnSelectAll(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            self.txtPrompt.SelectAll()
-        else:
-            glob.docMgr.currDoc.SelectAll()
-
     def OnSourceBrowserGoTo(self, event):
         drSourceBrowserGoTo.SourceBrowserGoTo(self, glob.docMgr.currDoc)
 
@@ -886,6 +769,68 @@ class MainFrame(wx.Frame):
             glob.docMgr.currDoc.SetViewWhiteSpace(not c)
             if config.prefs.vieweol:
                 glob.docMgr.currDoc.SetViewEOL(not c)
+
+    #**********************************************************************************
+    def OnFormatMacMode(self, event):
+        glob.docMgr.FormatMode("Mac")
+       
+    def OnFormatUnixMode(self, event):
+        glob.docMgr.FormatMode("Unix")
+        
+    def OnFormatWinMode(self, event):
+        glob.docMgr.FormatMode("Win")
+        
+    def OnIndentRegion(self, event):
+        self.docMgr.IndentRegion()
+        
+    def OnCleanUpSpaces(self, event):
+        wx.BeginBusyCursor()
+        glob.docMgr.currDoc.SetToSpaces(8)
+        glob.docMgr.currDoc.OnModified(None)
+        wx.EndBusyCursor()
+    
+    def OnCommentRegion(self, event):
+        glob.docMgr.CommentRegion()
+    
+    def OnUnCommentRegion(self, event):
+        glob.docMgr.UnCommentRegion()
+            
+    def OnDedentRegion(self, event):
+        glob.docMgr.DedentRegion()
+            
+    #**********************************************************************************
+    def OnMenuFind(self, event):
+        stc = self.GetActiveSTC()
+        d = drFindReplaceDialog(self, -1, "Find", stc)
+        d.SetOptions(self.FindOptions)
+        if stc.GetSelectionStart() < stc.GetSelectionEnd():
+            d.SetFindString(stc.GetSelectedText())
+        elif config.prefs.findreplaceundercursor:
+            pos = stc.GetCurrentPos()
+            d.SetFindString(stc.GetTextRange(stc.WordStartPosition(pos, 1), stc.WordEndPosition(pos, 1)))
+        d.Show(True)
+
+    def OnMenuFindNext(self, event):
+        self.GetActiveSTC().Finder.DoFindNext()
+
+    def OnMenuFindPrevious(self, event):
+        self.GetActiveSTC().Finder.DoFindPrevious()
+
+    def OnMenuReplace(self, event):
+        stc = self.GetActiveSTC()
+        d = drFindReplaceDialog(self, -1, "Replace", stc, 1)
+        d.SetOptions(glob.ReplaceOptions)
+        if stc.GetSelectionStart() < stc.GetSelectionEnd():
+            d.SetFindString(stc.GetTextRange(stc.GetSelectionStart(), stc.GetSelectionEnd()))
+        else:
+            d.SetFindString(stc.Finder.GetFindText())
+        d.Show(True)
+
+    def OnSelectAll(self, event):
+        if self.txtPrompt.GetSTCFocus():
+            self.txtPrompt.SelectAll()
+        else:
+            glob.docMgr.currDoc.SelectAll()
 
     def OnCut(self, event):
         if self.txtPrompt.GetSTCFocus():
@@ -944,87 +889,13 @@ class MainFrame(wx.Frame):
             glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_LOWERCASE)
         
     #**********************************************************************************
-    def OnPython(self, event):
-        self.ExecutePython()
-
-    def OnRun(self, event):
-        #patch [ 1367222 ] Improved Run Command + HTML Browser
-        if not glob.docMgr.currDoc.filename:
-            return
-        if glob.docMgr.currDoc.GetModify():
-            if config.prefs.saveonrun or utils.Ask("The file has been modified and must " + "be saved before it can be run.\nWould you like to save it?", "EasyPython"):
-                if not self.OnSave(event):
-                    return
-            else:
-                return
-        root, ext = os.path.splitext(glob.docMgr.currDoc.filename)
-        if utils.IsHtmlFile(glob.docMgr.currDoc.filename):
-            drHtmlBrowser.ShowHtmlFile(self, glob.docMgr.currDoc.filename)
-            return
-
-        cdir, filen = os.path.split(glob.docMgr.currDoc.filename)
-        cwd = os.getcwd()
-        try:
-            os.chdir(cdir)
-        except:
-            utils.ShowMessage("Error Setting current directory for Python.", "EasyPython RunError")
-        if utils.IsPythonFile (glob.docMgr.currDoc.filename):
-            largs = ""
-            if (len(glob.LastProgArgs) > 0):
-                largs = ' ' + glob.LastProgArgs
-            if config.PLATFORM_IS_WIN:
-                self.RunCmd((config.pythexecw + " -u " +  config.prefs.pythonargs + ' "' +
-                                 glob.docMgr.currDoc.filename.replace("\\", "/") + '"' + largs),
-                                 "Running " + filen, filen)
-            else:
-                self.RunCmd((config.pythexec + " -u " +  config.prefs.pythonargs + ' "' + glob.docMgr.currDoc.filename + '"'  + largs), "Running " + filen, filen)                #patch: [ 1366679 ] Goto Line Should Not Display At Top Of Window
-        else:
-            #another extra handling for that
-            pass
-        os.chdir(cwd)
-
-    def OnSetArgs(self, event):
-        d = wx.TextEntryDialog(self, "Arguments:", "EasyPython - Set Arguments", glob.LastProgArgs)
-        if d.ShowModal() == wx.ID_OK:
-            glob.LastProgArgs = d.GetValue()
-        d.Destroy()
-
     def OnViewAbout(self, event):
         import drAboutDialog
         drAboutDialog.Show(self)
 
     def OnViewHelp(self, event):
-        self.ViewURLInBrowser(config.programdirectory + "/documentation/help.html")
-
-    def OnViewPythonDocs(self, event):
-        self.ViewURLInBrowser(config.prefs.documentationpythonlocation)
-
-    def OnViewREHowtoDocs(self, event):
-        self.ViewURLInBrowser(config.prefs.documentationrehowtolocation)
-
-    def OnViewWxWidgetsDocs(self, event):
-        self.ViewURLInBrowser(config.prefs.documentationwxwidgetslocation)
-
-    def OnZoomIn(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            zoom = self.txtPrompt.GetZoom()
-            if zoom < 20:
-                self.txtPrompt.SetZoom(zoom + 1)
-        else:
-            zoom = glob.docMgr.currDoc.GetZoom()
-            if zoom < 20:
-                glob.docMgr.currDoc.SetZoom(zoom + 1)
-                
-    def OnZoomOut(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            zoom = self.txtPrompt.GetZoom()
-            if zoom > -9:
-                self.txtPrompt.SetZoom(zoom - 1)
-        else:
-            zoom = glob.docMgr.currDoc.GetZoom()
-            if zoom > -9:
-                glob.docMgr.currDoc.SetZoom(zoom - 1)
-    
+        self.ViewURLInBrowser(config.AppDir + "/documentation/help.html")
+        
     #**********************************************************************************
     def CreateRecentFileMenu(self):
         x = 0
@@ -1043,18 +914,14 @@ class MainFrame(wx.Frame):
             self.RecentMenu.Remove(self.ID_RECENT_FILES_BASE+x)
             x = x + 1
 
+    def UpdateSourceBrwser(self) :
+        self.SourceBrowser.Browse()
+          
+    #**********************************************************************************
     def Execute(self, command, statustext = ''):
         if not statustext:
             statustext = "Running Command"
         self.RunCmd(command, statustext, command)
-
-    def ExecutePython(self):
-        self.txtPrompt.pythonintepreter = 1
-        self.ExecuteWithPython('', 'Running Python Interpreter', '-i', 'Python')
-        try:
-            wx.Yield()
-        except:
-            pass
         
     def ExecuteWithPython(self, command = '', statustext = '', pythonargs='', pagetext='Python'):
         commandstring = string.join([' -u', pythonargs, config.prefs.pythonargs, command], ' ').rstrip()
@@ -1069,11 +936,10 @@ class MainFrame(wx.Frame):
         if self.txtPrompt.pid > -1:
             self.OnNewPrompt(None)
         '''
-        
         #self.infobook.SetPageText(0, pagetext)
 
         self.runPrompt.SetReadOnly(0)
-        #self.runPrompt.SetText(command + '\n')
+        self.runPrompt.SetText(command + '\n')
             
         #self.infobook.SetPageImage(self.promptPosition, 3)
         self.runPrompt.SetScrollWidth(1)
@@ -1085,6 +951,9 @@ class MainFrame(wx.Frame):
         self.runPrompt.process = wx.Process(self)
         self.runPrompt.process.Redirect()
         
+        if type(command) == unicode:
+                command = command.encode(wx.GetDefaultPyEncoding())
+                
         if config.PLATFORM_IS_WIN:
             self.runPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.runPrompt.process)
         else:
@@ -1096,12 +965,14 @@ class MainFrame(wx.Frame):
 
         self.runPrompt.process.redirectOut = redout
         self.runPrompt.process.redirectErr = rederr
-
+       
         self.runPrompt.SetFocus()
 
+    #**********************************************************************************
     def GetActiveSTC(self):
         return glob.docMgr.currDoc
 
+    #**********************************************************************************
     def InitializeConstants(self):
         
         self.ID_DOCUMENT_BASE = 50
@@ -1214,8 +1085,10 @@ class MainFrame(wx.Frame):
         self.ID_SCRIPT_BASE = 7500
         
     def RunShortcuts(self, event, stc = None, SplitView = 0):
-        return drShortcuts.RunShortcuts(glob.shortcutMgr, event, stc, SplitView)
-
+        #return drShortcuts.RunShortcuts(glob.shortcutMgr, event, stc, SplitView)
+        pass
+        
+    #**********************************************************************************
     def setPromptTo(self, number):
         oldfinder = self.prompts[self.promptPosition].Finder
 
@@ -1233,10 +1106,7 @@ class MainFrame(wx.Frame):
             self.SetStatusText("", 2)
 
         self.infobook.SetSelection(self.promptPosition)
-
-    def ShowSourceBrowser(self):
-        self.SourceBrowser.Browse()
-        
+ 
     def ShowPrompt(self, Visible = True):
         if Visible:
             if self.mainpanel.PromptIsVisible:
@@ -1252,7 +1122,7 @@ class MainFrame(wx.Frame):
             if self.hasToolBar:
                 self.toolbar.ToggleTool(self.ID_TOGGLE_PROMPT,  False)
             glob.docMgr.currDoc.SetFocus()
-
+        
     def updatePrefs(self, oldprefs):
         #Styling:
         
@@ -1315,6 +1185,7 @@ class MainFrame(wx.Frame):
             return
         wx.Execute((config.prefs.documentationbrowser + ' "' + url + '"'), wx.EXEC_ASYNC)
 
+    #**********************************************************************************
     def GetNewId(self):
         return 10000 + wx.NewId()
 
@@ -1324,6 +1195,7 @@ class MainFrame(wx.Frame):
         else:
             return config.prefs[pref]
     
+    #**********************************************************************************
     # lm - adding helper functions
     def promptSaveAll(self):
         """ check if there are any open unsaved files, and prompt the user to save each """
@@ -1332,14 +1204,14 @@ class MainFrame(wx.Frame):
             if glob.docMgr.docs[x].GetModify():
                 if utils.Ask('Would you like to save "%s"?' % glob.docMgr.docs[x].GetFileName(), "EasyPython"):
                     glob.docMgr.SelectDoc(x)
-                    self.OnSave(None)
+                    self.OnSaveFile(None)
             x += 1
 
     def promptSaveCurrent(self):
         """ ask the user if they would like to save the current file """
         if glob.docMgr.currDoc.GetModify():
             if utils.Ask('Would you like to save "%s"?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                self.OnSave(None)
+                self.OnSaveFile(None)
 
     def promptDir(self, msg):
         """ open a directory browser and return the directory chosen """

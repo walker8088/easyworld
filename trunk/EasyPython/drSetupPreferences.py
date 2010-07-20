@@ -109,8 +109,8 @@ class drSetupPreferencesDialog(wx.Dialog):
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath().replace("\\", "/")
-            drZip.ExportPreferencesTo(self.drframe.pluginsdirectory, self.drframe.preferencesdirectory,
-                                      self.drframe.datdirectory, filename)
+            drZip.ExportPreferencesTo(self.drframe.pluginsdirectory, self.drframe.AppDataDir,
+                                      self.drframe.AppDataDir, filename)
 
         dlg.Destroy()
 
@@ -119,7 +119,7 @@ class drSetupPreferencesDialog(wx.Dialog):
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath().replace("\\", "/")
-            drZip.ExportDrScriptsTo(self.drframe.preferencesdirectory, filename)
+            drZip.ExportDrScriptsTo(self.drframe.AppDataDir, filename)
 
         dlg.Destroy()
 
@@ -137,8 +137,8 @@ class drSetupPreferencesDialog(wx.Dialog):
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath().replace("\\", "/")
-            drZip.ExportPreferencesTo(self.drframe.pluginsdirectory, self.drframe.preferencesdirectory,
-                                      self.drframe.datdirectory, filename, plugins=False, drscripts=False)
+            drZip.ExportPreferencesTo(self.drframe.pluginsdirectory, self.drframe.AppDataDir,
+                                      self.drframe.AppDataDir, filename, plugins=False, drscripts=False)
 
         dlg.Destroy()
 
@@ -148,7 +148,7 @@ class drSetupPreferencesDialog(wx.Dialog):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath().replace("\\", "/")
-                drZip.ImportPreferencesFrom(self.drframe.preferencesdirectory, filename)
+                drZip.ImportPreferencesFrom(self.drframe.AppDataDir, filename)
                 self.drframe.ShowMessage('Successfully imported preferences, plugins, and drscripts.', 'Import Success')
 
             dlg.Destroy()
@@ -159,7 +159,7 @@ class drSetupPreferencesDialog(wx.Dialog):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath().replace("\\", "/")
-                drZip.ImportDrScriptsFrom(self.drframe.preferencesdirectory, filename)
+                drZip.ImportDrScriptsFrom(self.drframe.AppDataDir, filename)
                 self.drframe.ShowMessage('Successfully imported drscripts.', 'Import Success')
 
             dlg.Destroy()
@@ -170,7 +170,7 @@ class drSetupPreferencesDialog(wx.Dialog):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath().replace("\\", "/")
-                drZip.ImportPluginsFrom(self.drframe.preferencesdirectory, filename)
+                drZip.ImportPluginsFrom(self.drframe.AppDataDir, filename)
                 self.drframe.ShowMessage('Successfully imported plugins.', 'Import Success')
 
             dlg.Destroy()
@@ -181,7 +181,7 @@ class drSetupPreferencesDialog(wx.Dialog):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath().replace("\\", "/")
-                drZip.ImportJustPreferencesFrom(self.drframe.preferencesdirectory, filename)
+                drZip.ImportJustPreferencesFrom(self.drframe.AppDataDir, filename)
                 self.drframe.ShowMessage('Successfully imported preferences.', 'Import Success')
 
             dlg.Destroy()

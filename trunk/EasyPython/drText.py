@@ -209,13 +209,8 @@ class DrText(drSTC.DrStyledTextControl):
                 self.SetSavePoint()
 
             targetPosition = glob.docMgr.docbook.GetPageIndex(self)
-            print "Position:", targetPosition 
             glob.docMgr.docbook.SetPageImage(targetPosition, pimageidx)
             
-            #TODO: Update Title
-            #glob.MainFrame.SetTitle(title)
-            #glob.docMgr.docbook.SetPageText(targetPosition, pagetext)
-
         if config.prefs.docupdateindentation:
             #If deleting text, or undo/redo:
             if event is not None:

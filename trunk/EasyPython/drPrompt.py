@@ -124,42 +124,22 @@ class DrPrompt(drSTC.DrStyledTextControl):
 #                wx.Yield()
             text = self._addoutput()
 
-    def AddEncodedText(self, text):
-        try:
-            etext = drEncoding.EncodeText(text)
-            wx.stc.StyledTextCtrl.AddText(self, etext)
-        except:
-            print 'Error Encoding Text'
-
     def AddText(self, text):
         ro = self.GetReadOnly()
         self.SetReadOnly(0)
-        self.AddEncodedText(text)
+        
+        lines = text.split("\n")
+        for line in lines :
+                if line == '' :
+                        wx.stc.StyledTextCtrl.AddText(self, "\n")
+                        continue
+                etext = drEncoding.DecodeText(line)
+                if etext :
+                        wx.stc.StyledTextCtrl.AddText(self, etext + "\n")
+                else :
+                        print "decode error :", type(line)
+                               
         self.SetReadOnly(ro)
-
-    def ExecuteCommands(self, text):
-        '''Executes Commands Separated by '\n' '''
-        if not text:
-            return
-        self._addoutput()
-        self.commandinprogress = True
-        text = text.rstrip()
-        commands = text.split('\n')
-        for command in commands:
-            command += '\n'
-            self._addoutput()
-            try:
-                etext = drEncoding.EncodeText(command)
-            except:
-                print 'Error Encoding Text'
-                return
-            self.outputstream.write(etext)
-            self.GotoPos(self.GetLength())
-            wx.stc.StyledTextCtrl.AddText(self, etext)
-            self._addoutput((len(command) > 1))
-            self.editpoint = self.GetLength()
-            self.ScrollToLine(self.LineFromPosition(self.editpoint))
-        self.commandinprogress = False
 
     def GetEditPoint(self):
         return self.editpoint
@@ -169,7 +149,7 @@ class DrPrompt(drSTC.DrStyledTextControl):
             etext = drEncoding.EncodeText(text)
             wx.stc.StyledTextCtrl.InsertText(self, pos, etext)
         except:
-            print 'Error Encoding Text'
+            print 'Error Encoding Text:InsertEncodedText'
 
     def InsertText(self, pos, text):
         ro = self.GetReadOnly()
@@ -181,19 +161,20 @@ class DrPrompt(drSTC.DrStyledTextControl):
         if (self.process is not None) and (not self.commandinprogress):
             if self.inputstream.CanRead():
                 text = self.inputstream.read()
-                self.AddEncodedText(text)
+                self.AddText(text)
                 self.EmptyUndoBuffer()
                 self.editpoint = self.GetLength()
                 self.GotoPos(self.editpoint)
                 self.ScrollToLine(self.LineFromPosition(self.editpoint))
+                
             if self.errorstream.CanRead():
                 text = self.errorstream.read()
-                self.AddEncodedText(text)
+                self.AddText(text)
                 self.EmptyUndoBuffer()
                 self.editpoint = self.GetLength()
                 self.GotoPos(self.editpoint)
                 self.ScrollToLine(self.LineFromPosition(self.editpoint))
-
+                
     def OnGotoSelectedLine(self, event):
         self.foundvalidline = False
 

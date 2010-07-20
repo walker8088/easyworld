@@ -237,7 +237,7 @@ class drTreeDialog(wx.Dialog):
         self.BuildTreeFromString = BuildTreeFromString
         self.WriteBranch = WriteBranch
 
-        self.preferencesdirectory = parent.preferencesdirectory
+        self.AppDataDir = parent.AppDataDir
         self.wildcard = config.prefs.wildcard
         self.targetfile = targetfile
         self.dialogsizefile = dialogsizefile

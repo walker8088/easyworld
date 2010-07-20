@@ -73,7 +73,7 @@ class drAboutContentPanel(wx.Panel):
 
         author.SetFont(standardfont)
 
-        credits = drStaticLink(self, 1, ' Credits ', config.programdirectory + "/documentation/credits.html", drframe)
+        credits = drStaticLink(self, 1, ' Credits ', config.AppDir + "/documentation/credits.html", drframe)
 
         website = drStaticLink(self, 2, ' http://easypython.sourceforge.net/ ', 'http://easypython.sourceforge.net/', drframe)
 
@@ -116,7 +116,7 @@ class drLicensePanel(wx.Panel):
         wx.Panel.__init__(self, parent, id)
 
         try:
-            f = file(config.programdirectory + "/documentation/gpl.html", 'rb')
+            f = file(config.AppDir + "/documentation/gpl.html", 'rb')
             text = f.read()
             f.close()
         except:
@@ -185,7 +185,7 @@ class drAboutDialog(wx.Dialog):
 
         self.topSizer.Add(wx.lib.stattext.GenStaticText(self, -1, '  '), 0, wx.SHAPED | wx.ALIGN_CENTER_VERTICAL)
 
-        self.topSizer.Add(wx.StaticBitmap(self, -1, wx.BitmapFromImage(wx.Image(config.programdirectory + "/documentation/EasyPython.png", wx.BITMAP_TYPE_PNG))), 0, wx.SHAPED | wx.ALIGN_CENTER_VERTICAL)
+        self.topSizer.Add(wx.StaticBitmap(self, -1, wx.BitmapFromImage(wx.Image(config.AppDir + "/documentation/EasyPython.png", wx.BITMAP_TYPE_PNG))), 0, wx.SHAPED | wx.ALIGN_CENTER_VERTICAL)
 
         self.topSizer.Add(wx.lib.stattext.GenStaticText(self, -1, '  '), 0, wx.SHAPED | wx.ALIGN_CENTER_VERTICAL)
 

@@ -60,7 +60,7 @@ class ShortcutManager :
     
     def LoadShortcuts(self, UseDefault = False):
         #Load STC Shortcuts
-        stcshortcutsfile = config.shortcutsdirectory + "/stcshortcuts.dat"
+        stcshortcutsfile = config.AppDataDir + "/stcshortcuts.dat"
         if os.path.exists(stcshortcutsfile) and (not UseDefault):
             try:
                 self.STCShortcuts, self.STCShortcutNames, t = drShortcutsFile.ReadSTCShortcuts(stcshortcutsfile)
@@ -70,7 +70,7 @@ class ShortcutManager :
                                   "STC Shortcuts Error")
 
         #check for shortcuts file in user userpreferencesdirectory
-        shortcutsfile = config.shortcutsdirectory + "/shortcuts.dat"
+        shortcutsfile = config.AppDataDir + "/shortcuts.dat"
         if os.path.exists(shortcutsfile) and (not UseDefault):
             try:
                 self.Shortcuts, self.ShortcutNames, self.ShortcutsIgnoreString = drShortcutsFile.ReadShortcuts(shortcutsfile)

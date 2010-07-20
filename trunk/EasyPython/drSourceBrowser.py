@@ -208,7 +208,6 @@ class drSourceBrowserPanel(wx.Panel):
         pass
         
     def Browse(self):
-        
         self.Index = glob.docMgr.selection
         
         if self.Index < 0 :
@@ -229,7 +228,7 @@ class drSourceBrowserPanel(wx.Panel):
 
         self.eol = glob.docMgr.currDoc.GetEndOfLineCharacter()
         self.targetText = glob.docMgr.currDoc.GetText()
-
+        
         #if self.mixed:
         #    return 
         
@@ -353,15 +352,7 @@ class drSourceBrowserPanel(wx.Panel):
                 match = matcher.next()
             except:
                 match = None
-
-        if config.prefs.sourcebrowserissorted:
-            self.classtree.SortChildren(self.root)
-            x = 0
-            l = len(RootArray)
-            while x < l:
-                self.classtree.SortChildren(RootArray[x])
-                x = x + 1
-
+        
         self.classtree.Thaw()
         
         return wasnotmixed

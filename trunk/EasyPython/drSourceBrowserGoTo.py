@@ -89,7 +89,7 @@ class drSourceBrowserGoToDialog(drSingleChoiceDialog):
 
             spaces = respacecount.search(self.choices[pos]).start() - 1
 
-            definedin = self.Document.GetFilenameTitle()
+            definedin = self.Document.GetFileNameTitle()
 
             if spaces > 0:
                 x = pos

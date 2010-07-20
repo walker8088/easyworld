@@ -84,6 +84,8 @@ class DocManager() :
         if self.currDoc.filename:
             glob.CurrDir = os.path.split(self.currDoc.filename)[0]
         
+        self.frame.UpdateSourceBrwser()
+       
         glob.pluginMgr.PPost(glob.pluginMgr.EVT_DRPY_DOCUMENT_CHANGED)
     
     def GetLastDocNo(self) :            
@@ -131,10 +133,10 @@ class DocManager() :
             self.selection = -1
             #self.frame.UpdateMenuAndToolbar()
         
-        #TODO：Update Source Browser?
         if len(self.docs) == 0 :
             self.UpdateTitle()
-        
+            self.frame.UpdateSourceBrwser()
+            
     def OpenOrSwitchToFile(self, filename):
         filename = filename.replace("\\", "/")
         alreadyopen = self.GetOpened()
@@ -156,6 +158,9 @@ class DocManager() :
         filename = os.path.abspath(filename).replace("\\", '/')
         
         try:
+            if type(filename) != unicode:
+                filename = filename.decode(wx.GetDefaultPyEncoding())
+                
             cfile = file(filename, 'rb')
         except:
             utils.ShowMessage("Error Opening: " + filename , "EasyPython Error")

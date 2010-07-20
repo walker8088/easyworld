@@ -167,7 +167,7 @@ class drSeparatorDialog(wx.Dialog):
         self.favorites = {0:('#000000', '#CAFFFF'), 1:('#000000', '#FFFFC6'), 2:('#000000', '#BEFFC6'),
         3:('#000000', '#FFA400'), 4:('#00FF00', '#000000')}
 
-        self.favoritefile = self.parent.datdirectory + '/.separator.favorite.colours.dat'
+        self.favoritefile = self.parent.AppDataDir + '/.separator.favorite.colours.dat'
 
         self.txtLabel = wx.TextCtrl(self, -1, 'Label', size=(300, -1), style=wx.TE_PROCESS_ENTER|wx.TE_RICH2)
 
