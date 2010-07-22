@@ -105,7 +105,6 @@ def OnPopUpMenu(stc, event):
 def SetUpPopUpActions(frame):
 
     actiondictionary = {"New":frame.OnNew, "Open":frame.OnOpen, 
-    "Save":frame.OnSave, "Save As":frame.OnSaveAs,
     "Save All Documents":frame.OnSaveAll,
     "Close All Documents":frame.OnCloseAllDocuments, "Close All Other Documents":frame.OnCloseAllOtherDocuments,
     "Print Setup":frame.OnPrintSetup, "Print File":frame.OnPrint,

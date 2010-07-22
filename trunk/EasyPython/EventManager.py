@@ -1,31 +1,74 @@
 
-class EventManager :
-    EVT_DRPY_DOCUMENT_CHANGED,\
-    EVT_DRPY_FILE_OPENING, EVT_DRPY_FILE_OPENED,\
-    EVT_DRPY_FILE_SAVING,  EVT_DRPY_FILE_SAVED,\
-    EVT_DRPY_FILE_CLOSING, EVT_DRPY_FILE_CLOSED,\
-    EVT_DRPY_NEW = range(8)
-    
-    def __init__(self, frame) :
-        self.frame = frame
-        self.events = []
- 
-    def PBind(self, eventtype, function, *args):
-        self.events.append((eventtype, function, args))
+import wx
+import wx.lib.newevent
 
-    def PPost(self, eventtype):
-        for evt in self.events:
-            if evt[0] == eventtype:
-                if evt[2]:
-                    apply(evt[1], evt[2])
-                else:
-                    evt[1]()
-                    
-    def PUnbind(self, eventtype, function):
-        x = 0
-        for evt in self.events:
-            if (evt[0] == eventtype) and (evt[1] == function):
-                self.events.pop(x)
-            else:
-                x += 1
-       
+FileNewEvent,\
+EVT_FILE_NEW = wx.lib.newevent.NewCommandEvent() 
+
+FileLoadingEvent,\
+EVT_FILE_OPENING = wx.lib.newevent.NewCommandEvent()
+
+FileLoadedEvent,\
+EVT_FILE_OPENED = wx.lib.newevent.NewCommandEvent()
+
+FileSavingEvent,\
+EVT_FILE_SAVING = wx.lib.newevent.NewCommandEvent()
+
+FileSavedEvent,\
+EVT_FILE_SAVED = wx.lib.newevent.NewCommandEvent()
+
+FileClosingEvent,\
+EVT_FILE_CLOSING = wx.lib.newevent.NewCommandEvent()
+
+FileClosedEvent,\
+EVT_FILE_CLOSED = wx.lib.newevent.NewCommandEvent()  
+
+FileChangedEvent,\
+EVT_FILE_CHANGED = wx.lib.newevent.NewCommandEvent()
+
+SelectChangedEvent,\
+EVT_SELECT_CHANGED = wx.lib.newevent.NewCommandEvent()
+   
+class EventManager(wx.EvtHandler) : 
+    def __init__(self, frame) :
+        
+        wx.EvtHandler.__init__(self)
+        
+        self.frame = frame
+        
+    def PostFileNewEvent(self, doc) :
+        event = FileNewEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+         
+    def PostFileLoadingEvent(self, doc) :
+        event = FileLoadingEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+        
+    def PostFileLoadedEvent(self, doc) :
+        event = FileLoadedEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+        
+    def PostFileChangedEvent(self, doc) :
+        event = FileChangedEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+        
+    def PostFileSavingEvent(self, doc) :
+        event = FileSavingEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+        
+    def PostFileSavedEvent(self, doc) :
+        event = FileSavedEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+    
+    def PostFileClosingEvent(self, doc) :
+        event = FileClosingEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+        
+    def PostFileClosedEvent(self, doc) :
+        event = FileClosedEvent(-1, doc = doc)
+        self.ProcessEvent(event)
+        
+    def PostSelectChangedEvent(self, doc, index) :
+        event = SelectChangedEvent(-1, doc = doc, index = index)
+        self.ProcessEvent(event)
+        
