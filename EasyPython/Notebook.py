@@ -59,7 +59,7 @@ class DocNotebook(aui.AuiNotebook):
         self.docMgr.SelectDoc(index)
     
     def OnPageClosing(self, event):
-        self.docMgr.CloseDoc(event.GetSelection())
+        glob.MainFrame.OnCloseFile(None)
         
     def OnPopUp(self, event):
         tabmenu = wx.Menu()

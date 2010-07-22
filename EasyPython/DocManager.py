@@ -8,6 +8,8 @@ import drTabNanny
 from drText import DrText
 import drEncoding
 
+import EventManager
+
 import config, glob
 import utils
 
@@ -86,7 +88,7 @@ class DocManager() :
         
         self.frame.UpdateSourceBrwser()
        
-        glob.pluginMgr.PPost(glob.pluginMgr.EVT_DRPY_DOCUMENT_CHANGED)
+        glob.EventMgr.PostSelectChangedEvent(self.currDoc, index)
     
     def GetLastDocNo(self) :            
         docCount = len(self.docs)
@@ -114,6 +116,7 @@ class DocManager() :
         newDoc = DrText(self.frame)
         newDoc.untitlednumber = last
         newDoc.filetype = glob.PYTHON_FILE
+        #newDoc.filename = None
         newDoc.IsActive = False
         newDoc.SetupPrefsDocument(0)
         newDoc.SetSTCFocus(True)
@@ -121,13 +124,17 @@ class DocManager() :
         self.docs.append(newDoc)
         self.docbook.AddPage(newDoc, newDoc.GetFileNameTitle())
                 
-        glob.pluginMgr.PPost(glob.pluginMgr.EVT_DRPY_NEW)
+        glob.EventMgr.PostFileNewEvent(newDoc)
         
         self.SelectDoc(len(self.docs)-1)
 
     def CloseDoc(self, index) :    
+    
         doc  = self.docs[index]
+        glob.EventMgr.PostFileClosingEvent(doc)
+       
         self.docs.remove(doc)
+        
         if index == self.selection :
             self.currDoc = None
             self.selection = -1
@@ -136,7 +143,9 @@ class DocManager() :
         if len(self.docs) == 0 :
             self.UpdateTitle()
             self.frame.UpdateSourceBrwser()
-            
+       
+        glob.EventMgr.PostFileClosedEvent(doc)
+          
     def OpenOrSwitchToFile(self, filename):
         filename = filename.replace("\\", "/")
         alreadyopen = self.GetOpened()
@@ -152,8 +161,6 @@ class DocManager() :
         encoding='utf-8'    
         
         wx.BeginBusyCursor()
-        
-        glob.pluginMgr.PPost(glob.pluginMgr.EVT_DRPY_FILE_OPENING)
         
         filename = os.path.abspath(filename).replace("\\", '/')
         
@@ -186,8 +193,9 @@ class DocManager() :
             newDoc.untitlednumber = -1
         
             self.docs.append(newDoc)
+            glob.EventMgr.PostFileLoadingEvent(newDoc)
             self.docbook.AddPage(newDoc, newDoc.GetFileNameTitle())
-        
+            
         try:
             oof = cfile.read()
        
@@ -257,12 +265,15 @@ class DocManager() :
         index = self.docs.index(newDoc)
         self.SelectDoc(index)
         
-        glob.pluginMgr.PPost(glob.pluginMgr.EVT_DRPY_FILE_OPENED)
-        
+        glob.EventMgr.PostFileLoadedEvent(newDoc)
+       
         wx.EndBusyCursor()
         
     def SaveFile(self, docPos, IsSaveAs = False, encoding='FromText'):
         
+        doc = self.docs[docPos]
+        glob.EventMgr.PostFileSavingEvent(doc)
+       
         #Submitted Write Access Patch.
         #Edited slightly by Dan (one if statement, string format).
         if (not os.access(self.docs[docPos].filename, os.W_OK)) and \
@@ -292,10 +303,13 @@ class DocManager() :
         except:
             utils.ShowMessage(("Error Writing: " + self.docs[docPos].filename), "EasyPython Error")
             return False
-
+            
+        
         self.docs[docPos].SetSavePoint()
         self.docs[docPos].OnModified(None)
 
+        glob.EventMgr.PostFileSavedEvent(doc)
+       
         return True
     
     def UpdateDocs(self) :    

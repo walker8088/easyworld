@@ -34,6 +34,7 @@ import drScrolledMessageDialog
 from drProperty import *
 
 import config, glob
+import EventManager
 
 recolour = re.compile('#\w+')
 
@@ -187,7 +188,7 @@ class drSourceBrowserPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBtnClose, id=101)
         self.Bind(wx.EVT_BUTTON, self.OnBtnRefresh, id=102)
         
-        glob.pluginMgr.PBind(glob.pluginMgr.EVT_DRPY_DOCUMENT_CHANGED, self.OnBtnRefresh, None)
+        #glob.EventMgr.BindEvent(EventManager.EVT_DOC_CHANGED, self.OnBtnRefresh, None)
         
         self.edSearch.Bind(wx.EVT_KEY_UP, self.OnEdSearch)
         self.edSearch.SetToolTipString("Search in the class-tree")

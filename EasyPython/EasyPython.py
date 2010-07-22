@@ -13,6 +13,7 @@ import config, glob, utils
 
 from actions import *        
 from Notebook import *
+from EventManager import *
 from DocManager import *
 from PluginManager import *
 from ShortcutManager import *
@@ -28,11 +29,15 @@ class MainFrame(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, -1, '', wx.DefaultPosition, (800, 600), name = "EasyPython")
-          
-        glob.MainFrame = self
         
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow(self)
+          
+        glob.MainFrame = self
+        
+        glob.EventMgr = EventManager.EventManager(self) 
+        
+        glob.EventMgr.Bind(EventManager.EVT_FILE_NEW, self.OnEventFileNew)
         
         config.Init()
         
@@ -44,7 +49,6 @@ class MainFrame(wx.Frame):
         
         glob.LoadRecentFiles()
         
-        glob.pluginMgr = PluginManager(self) 
         glob.shortcutMgr = ShortcutManager()
   
         #self.RestoreWinInfo()
@@ -76,6 +80,8 @@ class MainFrame(wx.Frame):
         self.runPrompt = DrPrompt(self)
         self.infobook.AddPage(self.runPrompt, u"程序输出")
         
+        self.UpdateTitle()
+        
         glob.LoadPopUpFile()
         self.Printer = DrPrinter(self)
         
@@ -85,13 +91,10 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnCloseW)
         
         self.CenterOnScreen()
+        self.Maximize()
         
         self._mgr.Update()
         
-        self.docMgr.UpdateTitle()
-        
-        wx.CallAfter(self.Maximize)
-    
     def CreateToolBars(self) :
         tb1 = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize,
                             aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
@@ -379,6 +382,8 @@ class MainFrame(wx.Frame):
         glob.docMgr.OpenOrSwitchToFile(glob.RecentFiles[recentmenuindex])
 
     def OnSaveFile(self, event):
+        if not glob.docMgr.currDoc :
+                return
         if not glob.docMgr.currDoc.filename:
             return self.OnSaveAs(event)
         else:
@@ -386,6 +391,9 @@ class MainFrame(wx.Frame):
         return True
 
     def OnSaveAs(self, event):
+        if not glob.docMgr.currDoc :
+                return
+        
         #dlg = drFileDialog.FileDialog(self, "Save File As", config.prefs.wildcard, IsASaveDialog=True)
         dlg = wx.FileDialog(self, u"文件另存为", wildcard = u"Python 文件(*.py;*.pyw)|*.py;*.pyw|所有文件 (*.×)|*.×", style = wx.FD_SAVE)
         
@@ -407,7 +415,7 @@ class MainFrame(wx.Frame):
             return False
         
         #self.UpdateMenuAndToolbar()
-        self.docMgr.UpdateTitle()
+        self.UpdateTitle()
 
         glob.docMgr.UpdateHighLightMenu()
         glob.docMgr.currDoc.SetupPrefsDocument()
@@ -473,8 +481,14 @@ class MainFrame(wx.Frame):
         return True
 
     def OnCloseFile(self, event):
-        if glob.docMgr.selection >= 0 :
-            glob.docMgr.CloseDoc(glob.docMgr.selection)
+        if not glob.docMgr.currDoc:
+            return
+        
+        if glob.docMgr.currDoc.GetModify():
+                if utils.Ask(u'你需要保存"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
+                    self.OnSaveFile(event)
+                
+        glob.docMgr.CloseDoc(glob.docMgr.selection)
     
     def OnCloseAll(self, event):
         x = len(glob.docMgr.docs) - 1
@@ -482,7 +496,7 @@ class MainFrame(wx.Frame):
             glob.docMgr.SelectDoc(x)
             if glob.docMgr.currDoc.GetModify():
                 if utils.Ask(u'你需要保存"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                    self.OnSave(event)
+                    self.OnSaveFile(event)
             glob.docMgr.CloseDoc(i)
             x = x - 1
 
@@ -509,7 +523,16 @@ class MainFrame(wx.Frame):
         if not glob.docMgr.currDoc :
                 return
         self.Printer.Print(glob.docMgr.currDoc.GetText(), glob.docMgr.currDoc.filename, 1)
+    #**********************************************************************************
+    def OnEventFileNew(self, event) :
+        pass
     
+    def OnEventFileClosed(self, event) :
+        pass
+    
+    def OnEventDocChanged(self, event) :
+        pass
+        
     #**********************************************************************************
     def OnCheckSyntax(self, event):
         if glob.docMgr.selection < 0 :
@@ -773,60 +796,44 @@ class MainFrame(wx.Frame):
             glob.docMgr.currDoc.SelectAll()
 
     def OnCut(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            stc = self.txtPrompt
-        else:
-            stc = glob.docMgr.currDoc
-
-        stc.CmdKeyExecute(wx.stc.STC_CMD_CUT)
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_CUT)
         
     def OnCopy(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            stc = self.txtPrompt
-        else:
-            stc = glob.docMgr.currDoc
-
-        stc.CmdKeyExecute(wx.stc.STC_CMD_COPY)
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_COPY)
         
     def OnPaste(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            stc = self.txtPrompt
-        else:
-            stc = glob.docMgr.currDoc
-
-        stc.Paste()
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.Paste()
         
     def OnDelete(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            stc = self.txtPrompt
-        else:
-            stc = glob.docMgr.currDoc
-
-        stc.CmdKeyExecute(wx.stc.STC_CMD_CLEAR)
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_CLEAR)
     
     def OnUndo(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            self.txtPrompt.Undo()
-        else:
-            glob.docMgr.currDoc.Undo()
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.Undo()
 
     def OnRedo(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            self.txtPrompt.Redo()
-        else:
-            glob.docMgr.currDoc.Redo()
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.Redo()
             
     def OnUppercase(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            self.txtPrompt.CmdKeyExecute(wx.stc.STC_CMD_UPPERCASE)
-        else:
-            glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_UPPERCASE)
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_UPPERCASE)
     
     def OnLowercase(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            self.txtPrompt.CmdKeyExecute(wx.stc.STC_CMD_LOWERCASE)
-        else:
-            glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_LOWERCASE)
+        if not glob.docMgr.currDoc :
+                return
+        glob.docMgr.currDoc.CmdKeyExecute(wx.stc.STC_CMD_LOWERCASE)
         
     #**********************************************************************************
     def OnViewAbout(self, event):
@@ -1135,6 +1142,14 @@ class MainFrame(wx.Frame):
         else:
             return config.prefs[pref]
     
+    def UpdateTitle(self) :
+        title = "EasyPython"
+        
+        if glob.docMgr.currDoc :
+            title += " - " + self.docMgr.currDoc.GetFileNameTitleFull()
+        
+        self.SetTitle(title)
+    
     #**********************************************************************************
     # lm - adding helper functions
     def promptSaveAll(self):
@@ -1161,30 +1176,7 @@ class MainFrame(wx.Frame):
             dir = d.GetPath()
         d.Destroy()
         return dir
-        
-    def RestoreWinInfo(self) :    
-        WindowWidth = 800
-        WindowHeight = 600
-        wasMaximized = 0
-        
-        if not os.path.exists(config.AppDataDir + "/EasyPython.sizeandposition.dat"):
-                return
-        try:
-            f = file(config.AppDataDir + "/EasyPython.sizeandposition.dat", 'r')
-            text = f.read()
-            if text:
-                values = map(int, text.split('\n'))
-                if len (values) == 5:
-                    WindowWidth, WindowHeight, WindowX, WindowY, wasMaximized = values
-                    self.SetSize((WindowWidth, WindowHeight))
-                    self.Move(wx.Point(WindowX, WindowY))
-                    if wasMaximized == 1:
-                        wx.CallAfter(self.Maximize)
-            f.close()
-        except:
-            pass
-            
-        
+              
 #*******************************************************************************************************
 if __name__ == '__main__':
     app = Application(MainFrame)
