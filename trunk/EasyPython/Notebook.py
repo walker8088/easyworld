@@ -41,25 +41,23 @@ class DocNotebook(aui.AuiNotebook):
         
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnPageClosing)
+        #self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.OnPageClosed)
         
         self.Bind( wx.EVT_RIGHT_DOWN,            self.OnPopUp )
         #self.Bind( wx.EVT_LEFT_UP,               self.OnSelectTab )
         #self.Bind( wx.EVT_LEFT_DCLICK,           self.OnLeftDoubleClick )
         
-
     def OnPageChanged(self, event):
         index = event.GetSelection()
-        
-        pages = self.GetPageCount()
-        if (index < 0) or (index >= pages):
-            if event is not None:
-                event.Skip()
-            return
-            
         self.docMgr.SelectDoc(index)
     
     def OnPageClosing(self, event):
         glob.MainFrame.OnCloseFile(None)
+    
+    def OnPageClosed(self, event):
+        count = self.GetPageCount()
+        if count == 0:
+              self.docMgr.SelectDoc(-1)
         
     def OnPopUp(self, event):
         tabmenu = wx.Menu()
