@@ -2,9 +2,8 @@
 #   E-mail:     drpython@bluebottle.com
 #   Note:       You must reply to the verification e-mail to get through.
 #
-#   Copyright 2003-2007 Daniel Pozmanter
-#
-#   Distributed under the terms of the GPL (GNU Public License)
+#   Copyright 2003-2007 Daniel  
+#   Distributed under the terms of the GPL (GNU Public License) 
 #
 #    DrPython is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

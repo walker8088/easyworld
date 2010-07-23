@@ -2,10 +2,12 @@
 
 import sys, os, re, string
 import time
+import traceback
 
 import wx
 from wax import *
  
+import wx.lib.dialogs
 import wx.lib.agw.aui as aui
 from wx.lib.agw.aui import aui_switcherdialog as ASD
  
@@ -21,12 +23,22 @@ from ShortcutManager import *
 from drMenu import * 
 from drPrompt import *
 from drPrinter import *
+from drFindReplaceDialog import *
 
 from drSourceBrowser import drSourceBrowserPanel
 
 #*******************************************************************************************************
 class MainFrame(wx.Frame):
+    ID_DOCUMENT_BASE = 50
+    ID_PROMPT_BASE = 340
+    
+    ID_ABOUT = 140
+    ID_HELP = 141
 
+    ID_OTHER = 9000
+    ID_RECENT_FILES_BASE = 9930
+    ID_RECENT_SESSIONS_BASE = 8330
+        
     def __init__(self):
         wx.Frame.__init__(self, None, -1, '', wx.DefaultPosition, (800, 600), name = "EasyPython")
         
@@ -154,6 +166,8 @@ class MainFrame(wx.Frame):
         acts.AddAction("check_syntax",  u'语法检查', self.OnCheckSyntax)
         acts.AddAction("run",           u'运行程序', self.OnRun)
         acts.AddAction("end",           u'结束运行', self.OnEnd)
+        
+        #acts.AddAction("end",           u'结束运行', self.OnEnd)
                         
         #acts.AddAction('exit', u"退出系统", glob.getBitmap('exit'), self.OnCmdExit)
         
@@ -235,8 +249,6 @@ class MainFrame(wx.Frame):
         self.editmenu.AppendSeparator()
         self.editmenu.Append(self.ID_SELECT_ALL, u'全选(Select All)')
         self.editmenu.AppendSeparator()
-        self.editmenu.Append(self.ID_FIND_AND_COMPLETE, u'查找并完成(Find And Complete)')
-        self.editmenu.AppendSeparator()
         self.editmenu.AppendMenu(self.ID_COMMENT, u"注释(&Comments)", self.commentmenu)
         #self.editmenu.AppendMenu(self.ID_WHITESPACE, u"空白(&Whitespace)", self.whitespacemenu)
         self.editmenu.AppendMenu(self.ID_CASE, u"大小写(Case)", self.casemenu)
@@ -273,9 +285,7 @@ class MainFrame(wx.Frame):
         #self.viewmenu.Append(self.ID_SOURCEBROWSER_GOTO, u'Source Browser Go To', True)
         self.viewmenu.AppendSeparator()
         #fix bug someone refered in forum limodou 2004/04/20
-        self.viewmenu.Append(self.ID_TOGGLE_VIEWWHITESPACE, u'Toggle View Whitespace', False, 12)
-        #end limodou
-        self.viewmenu.Append(self.ID_TOGGLE_PROMPT, u'Toggle Prompt')
+        self.viewmenu.Append(self.ID_TOGGLE_VIEWWHITESPACE, u'切换显示空白(Toggle View Whitespace)', False, 12)
         
         self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingPython, id=self.ID_HIGHLIGHT_PYTHON)
         self.Bind(wx.EVT_MENU,  self.OnSyntaxHighlightingHTML, id=self.ID_HIGHLIGHT_HTML)
@@ -327,7 +337,7 @@ class MainFrame(wx.Frame):
                              
         self.Bind(wx.EVT_MENU,  self.OnToggleSourceBrowser, id=self.ID_TOGGLE_SOURCEBROWSER)
         self.Bind(wx.EVT_MENU,  self.OnToggleViewWhiteSpace, id=self.ID_TOGGLE_VIEWWHITESPACE)
-        self.Bind(wx.EVT_MENU,  self.OnTogglePrompt, id=self.ID_TOGGLE_PROMPT)
+        #self.Bind(wx.EVT_MENU,  self.OnTogglePrompt, id=self.ID_TOGGLE_PROMPT)
 
     def OnActivate(self):
         glob.docMgr.UpdateDocs()
@@ -344,19 +354,8 @@ class MainFrame(wx.Frame):
         if not event.CanVeto():   
                return 
                
-        x = 0
-        l = len(glob.docMgr.docs)
-        while x < l:
-            if glob.docMgr.docs[x].GetModify():
-                answer = wx.MessageBox(u'你需要保存"%s"吗?' % glob.docMgr.docs[x].GetFileName(),
-                    "EasyPython", wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
-                if answer == wx.YES:
-                    glob.docMgr.SelectDoc(x)
-                    self.OnSaveFile(event)
-                elif answer == wx.CANCEL:
-                    return
-            x = x + 1
-    
+        self.OnCloseAll(None)       
+        
         event.Skip()
 
     #**********************************************************************************
@@ -387,7 +386,7 @@ class MainFrame(wx.Frame):
         if not glob.docMgr.currDoc.filename:
             return self.OnSaveAs(event)
         else:
-            glob.docMgr.SaveFile(glob.docMgr.selection)
+            glob.docMgr.SaveFile()
         return True
 
     def OnSaveAs(self, event):
@@ -402,24 +401,14 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() != wx.ID_OK:
             return False 
             
-        old = glob.docMgr.currDoc.filename
-        
-        if glob.docMgr.currDoc.untitlednumber > 0:
-            glob.docMgr.currDoc.untitlednumber = -1
-        
-        glob.docMgr.currDoc.filename = dlg.GetPath().replace("\\", "/")
-        glob.CurrDir = os.path.dirname(glob.docMgr.currDoc.filename)
-        
-        if not glob.docMgr.SaveFile(glob.docMgr.selection, not (old == glob.docMgr.currDoc.filename)):
-            glob.docMgr.currDoc.filename = old
+        if not glob.docMgr.SaveFile(dlg.GetPath().replace("\\", "/")):
             return False
+        
+        dlg.Destroy()
         
         #self.UpdateMenuAndToolbar()
         self.UpdateTitle()
 
-        glob.docMgr.UpdateHighLightMenu()
-        glob.docMgr.currDoc.SetupPrefsDocument()
-        
         #Update Recent Files
         self.DestroyRecentFileMenu()
         if glob.RecentFiles.count(glob.docMgr.currDoc.filename) != 0:
@@ -429,57 +418,13 @@ class MainFrame(wx.Frame):
         glob.RecentFiles.insert(0, glob.docMgr.currDoc.filename)
         glob.WriteRecentFiles()
         self.CreateRecentFileMenu()
-        
-        dlg.Destroy()
-        
+          
         return True
         
+    #**********************************************************************************
     def OnSaveAll(self, event):
-        oldpos = glob.docMgr.selection
-
-        x = 0
-        if config.prefs.promptonsaveall:
-            tosaveArray = []
-            tosaveLabels = []
-            for document in glob.docMgr.docs:
-                if glob.docMgr.docs[x].GetModify():
-                    tosaveArray.append(x)
-                    tosaveLabels.append(glob.docMgr.docs[x].GetFileNameTitle())
-                x += 1
-            if not tosaveLabels:
-                return
-            d = wx.lib.dialogs.MultipleChoiceDialog(self, u"需要保存所有的文件吗?", u"全部保存(Save All)", tosaveLabels, size=(300, 300))
-            l = len(tosaveArray)
-            y = 0
-            while y < l:
-                d.lbox.SetSelection(y)
-                y += 1
-            answer = d.ShowModal()
-            selections = d.GetValue()
-            d.Destroy()
-            if answer == wx.ID_OK:
-                for selection in selections:
-                    if not glob.docMgr.docs[tosaveArray[selection]].filename:
-                        glob.docMgr.SelectDoc(tosaveArray[selection])
-                        self.OnSaveAs(None)
-                    else:
-                        glob.docMgr.SaveFile(tosaveArray[selection])
-            else:
-                return False
-        else:
-            for document in glob.docMgr.docs:
-                if glob.docMgr.docs[x].GetModify():
-                    if not glob.docMgr.docs[x].filename:
-                        glob.docMgr.SelectDoc(x)
-                        self.OnSaveAs(None)
-                    else:
-                        glob.docMgr.SaveFile(x)
-                x += 1
-
-        glob.docMgr.SelectDoc(oldpos)
-
-        return True
-
+        self.PromptSaveAll()
+       
     def OnCloseFile(self, event):
         if not glob.docMgr.currDoc:
             return
@@ -488,41 +433,21 @@ class MainFrame(wx.Frame):
                 if utils.Ask(u'你需要保存"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
                     self.OnSaveFile(event)
                 
-        glob.docMgr.CloseDoc(glob.docMgr.selection)
+        glob.docMgr.CloseDoc()
     
     def OnCloseAll(self, event):
-        x = len(glob.docMgr.docs) - 1
-        while x > -1:
-            glob.docMgr.SelectDoc(x)
-            if glob.docMgr.currDoc.GetModify():
-                if utils.Ask(u'你需要保存"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                    self.OnSaveFile(event)
-            glob.docMgr.CloseDoc(i)
-            x = x - 1
-
+        self.PromptSaveAll()
+        glob.docMgr.CloseAll()
+        
     def OnCloseAllOthers(self, event):
-        if not glob.docMgr.currDoc.filename:
-            return
-        farray = map(lambda document: document.filename, glob.docMgr.docs)
-        try:
-            i = farray.index(glob.docMgr.currDoc.filename)
-        except:
-            return
-
-        x = len(farray) - 1
-        while x > -1:
-            if x != i:
-                glob.docMgr.SelectDoc(x)
-                if glob.docMgr.currDoc.GetModify():
-                    if utils.Ask(u'你需要保存文件"%s"吗?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                        self.OnSaveFile(event)
-                self.OnClose(event)
-            x = x - 1
+        self.PromptSaveAll(Others = True)
+        glob.docMgr.CloseAll(Others = True)
         
     def OnPrintFile(self, event):
         if not glob.docMgr.currDoc :
                 return
         self.Printer.Print(glob.docMgr.currDoc.GetText(), glob.docMgr.currDoc.filename, 1)
+        
     #**********************************************************************************
     def OnEventFileNew(self, event) :
         pass
@@ -641,6 +566,7 @@ class MainFrame(wx.Frame):
         d.Destroy()
         
     #**********************************************************************************
+    '''
     def OnNewPrompt(self, event):
         l = len(self.prompts)
 
@@ -700,7 +626,7 @@ class MainFrame(wx.Frame):
             if self.hasToolBar:
                 self.toolbar.ToggleTool(self.ID_TOGGLE_PROMPT,  True)
             self.txtPrompt.SetFocus()
-
+    '''    
     #**********************************************************************************
     def OnToggleSourceBrowser(self, event):
         pass
@@ -722,15 +648,11 @@ class MainFrame(wx.Frame):
         glob.docMgr.currDoc.SetupPrefsDocument()
 
     def OnToggleViewWhiteSpace(self, event):
-        if self.txtPrompt.GetSTCFocus():
-            c = self.txtPrompt.GetViewWhiteSpace()
-            self.txtPrompt.SetViewWhiteSpace(not c)
-            if config.prefs.vieweol:
-                self.txtPrompt.SetViewEOL(not c)
-        else:
-            c = glob.docMgr.currDoc.GetViewWhiteSpace()
-            glob.docMgr.currDoc.SetViewWhiteSpace(not c)
-            if config.prefs.vieweol:
+        if not glob.docMgr.currDoc :
+                return
+        c = glob.docMgr.currDoc.GetViewWhiteSpace()
+        glob.docMgr.currDoc.SetViewWhiteSpace(not c)
+        if config.prefs.vieweol:
                 glob.docMgr.currDoc.SetViewEOL(not c)
 
     #**********************************************************************************
@@ -878,13 +800,7 @@ class MainFrame(wx.Frame):
             self.RunCmd((config.pythexec + commandstring), statustext, pagetext)
     
     def RunCmd(self, command, statustext = "Running Command", pagetext="Prompt", redin="", redout = "", rederr=""):
-
         '''
-        if self.txtPrompt.pid > -1:
-            self.OnNewPrompt(None)
-        '''
-        #self.infobook.SetPageText(0, pagetext)
-
         self.runPrompt.SetReadOnly(0)
         self.runPrompt.SetText(command + '\n')
             
@@ -896,7 +812,8 @@ class MainFrame(wx.Frame):
         self.SetStatusText(statustext, 2)
         
         self.runPrompt.process = wx.Process(self)
-        self.runPrompt.process.Redirect()
+        #self.runPrompt.process.Redirect()
+        '''
         
         if type(command) == unicode:
                 command = command.encode(wx.GetDefaultPyEncoding())
@@ -906,15 +823,15 @@ class MainFrame(wx.Frame):
         else:
             self.runPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC, self.runPrompt.process)
         
+        '''
         self.runPrompt.inputstream = self.runPrompt.process.GetInputStream()
         self.runPrompt.errorstream = self.runPrompt.process.GetErrorStream()
         self.runPrompt.outputstream = self.runPrompt.process.GetOutputStream()
 
         self.runPrompt.process.redirectOut = redout
         self.runPrompt.process.redirectErr = rederr
-       
-        self.runPrompt.SetFocus()
-
+        '''
+        
     #**********************************************************************************
     def GetActiveSTC(self):
         return glob.docMgr.currDoc
@@ -922,19 +839,12 @@ class MainFrame(wx.Frame):
     #**********************************************************************************
     def InitializeConstants(self):
         
-        self.ID_DOCUMENT_BASE = 50
-        self.ID_PROMPT_BASE = 340
-
         #Application ID Constants
-        self.ID_APP = 101
-
+        
         self.ID_NEW = 102
         self.ID_OPEN = 103
-        self.ID_OPEN_IMPORTED_MODULE = 1000
         self.ID_OPEN_RECENT = 104
-        self.ID_RELOAD = 105
-        self.ID_RESTORE_FROM_BACKUP = 1051
-
+        
         self.ID_CLOSE = 106
         self.ID_CLOSE_ALL = 6061
         self.ID_CLOSE_ALL_OTHER_DOCUMENTS = 6062
@@ -945,7 +855,6 @@ class MainFrame(wx.Frame):
         self.ID_SAVE_COPY = 1092
         self.ID_SAVE_ALL = 1098
 
-        self.ID_PRINT_SETUP = 1010
         self.ID_PRINT = 1011
 
         self.ID_EXIT = 1014
@@ -960,12 +869,8 @@ class MainFrame(wx.Frame):
         self.ID_FIND_PREVIOUS = 1122
         self.ID_REPLACE = 113
         
-        self.ID_SOURCEBROWSER_GOTO = 1157
         self.ID_SELECT_ALL = 1161
-        self.ID_INSERT_REGEX = 1163
-
-        self.ID_INSERT_SEPARATOR = 1164
-
+        
         self.ID_COMMENT = 1116
         self.ID_COMMENT_REGION = 116
         self.ID_UNCOMMENT_REGION = 117
@@ -983,8 +888,6 @@ class MainFrame(wx.Frame):
         self.ID_WINMODE = 2002
         self.ID_MACMODE = 2003
 
-        self.ID_FIND_AND_COMPLETE = 2071
-
         self.ID_CASE = 1191
         self.ID_UPPERCASE = 1192
         self.ID_LOWERCASE = 1193
@@ -992,18 +895,11 @@ class MainFrame(wx.Frame):
         self.ID_UNDO = 1111
         self.ID_REDO = 1112
 
-        self.ID_ZOOM_IN = 161
-        self.ID_ZOOM_OUT = 162
-        self.ID_FOLDING = 1610
-        self.ID_TOGGLE_FOLD = 1613
-        self.ID_FOLD_ALL = 1611
-        self.ID_EXPAND_ALL = 1612
         self.ID_TOGGLE_SOURCEBROWSER = 163
         self.ID_TOGGLE_VIEWWHITESPACE = 164
         self.ID_TOGGLE_PROMPT = 165
 
         self.ID_HIGHLIGHT = 580
-
         self.ID_HIGHLIGHT_PYTHON = 585
         self.ID_HIGHLIGHT_HTML = 587
         self.ID_HIGHLIGHT_PLAIN_TEXT = 589
@@ -1020,16 +916,6 @@ class MainFrame(wx.Frame):
         self.ID_POPUP = 134
         self.ID_CUSTOMIZE_TOOLBAR = 135
         
-        self.ID_EDIT_BOOKMARKS = 301
-        self.ID_EDIT_SCRIPT_MENU = 3004
-
-        self.ID_ABOUT = 140
-        self.ID_HELP = 141
-
-        self.ID_OTHER = 9000
-        self.ID_RECENT_FILES_BASE = 9930
-        self.ID_RECENT_SESSIONS_BASE = 8330
-        self.ID_SCRIPT_BASE = 7500
         
     def RunShortcuts(self, event, stc = None, SplitView = 0):
         #return drShortcuts.RunShortcuts(glob.shortcutMgr, event, stc, SplitView)
@@ -1149,33 +1035,53 @@ class MainFrame(wx.Frame):
             title += " - " + self.docMgr.currDoc.GetFileNameTitleFull()
         
         self.SetTitle(title)
+   
+    def PromptSaveAll(self, Others = False) :   
+        if glob.docMgr.GetDocCount() == 0:
+            return
     
-    #**********************************************************************************
-    # lm - adding helper functions
-    def promptSaveAll(self):
-        """ check if there are any open unsaved files, and prompt the user to save each """
-        x = 0
-        while x < len(glob.docMgr.docs):
-            if glob.docMgr.docs[x].GetModify():
-                if utils.Ask('Would you like to save "%s"?' % glob.docMgr.docs[x].GetFileName(), "EasyPython"):
-                    glob.docMgr.SelectDoc(x)
-                    self.OnSaveFile(None)
-            x += 1
-
-    def promptSaveCurrent(self):
-        """ ask the user if they would like to save the current file """
-        if glob.docMgr.currDoc.GetModify():
-            if utils.Ask('Would you like to save "%s"?' % glob.docMgr.currDoc.GetFileName(), "EasyPython"):
-                self.OnSaveFile(None)
-
-    def promptDir(self, msg):
-        """ open a directory browser and return the directory chosen """
-        d = wx.DirDialog(self, msg, style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON|wx.MAXIMIZE_BOX|wx.THICK_FRAME)
-        dir = ''
-        if d.ShowModal() == wx.ID_OK:
-            dir = d.GetPath()
+        oldpos = glob.docMgr.selection
+        
+        tosaveArray = []
+        tosaveLabels = []
+        
+        i = 0
+        for doc in glob.docMgr.docs:
+            tosaveLabels.append(doc.GetFileNameTitle())
+            if doc.GetModify():
+                tosaveArray.append(i)
+            i += 1
+            
+        d = wx.lib.dialogs.MultipleChoiceDialog(self, u"需要保存这些文件吗?", u"保存", tosaveLabels, size=(300, 300))
+        
+        l = len(tosaveArray)
+        y = 0
+        while y < l:
+            d.lbox.SetSelection(y)
+            y += 1
+            
+        answer = d.ShowModal()
+        selections = d.GetValue()
         d.Destroy()
-        return dir
+        
+        if answer != wx.ID_OK:
+            return False
+            
+        for selection in selections:
+                glob.docMgr.SelectDoc(selection)
+                self.OnSaveFile(None)
+                
+        glob.docMgr.SelectDoc(oldpos)
+
+        return True
+
+    #**********************************************************************************
+    
+    def __ExceptHook__(self, exctype, value, tb):
+        s = ''.join(traceback.format_exception(exctype, value, tb))
+        dlg = wx.lib.dialogs.ScrolledMessageDialog(None, s, u"出错信息")
+        dlg.ShowModal()
+        dlg.Destroy()
               
 #*******************************************************************************************************
 if __name__ == '__main__':

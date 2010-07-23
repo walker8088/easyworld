@@ -495,9 +495,9 @@ class FileTypesPanel(PrefsPanel):
         self.ID_USEINTELLIBACKSPACE = 709
         self.ID_REMOVETRAILINGWHITESPACE = 710
 
-        self.cboFileType = wx.ComboBox(self, self.ID_FILETYPE, choices=['Python', 'C/C++', 'HTML', 'Text'])
+        self.cboFileType = wx.ComboBox(self, self.ID_FILETYPE, choices=['Python', 'HTML', 'Text'])
 
-        self.filetype = self.drframe.currDoc.filetype
+        self.filetype = 0
 
         self.txtExtensions = wx.TextCtrl(self, self.ID_EXTENSIONS, '', wx.Point(225, 215), (225, -1))
 
@@ -742,7 +742,6 @@ class GeneralPanel(PrefsPanel):
         self.chkrememberpanelsizes.SetValue(config.prefs.rememberpanelsizes)
         self.chkautodetectencoding.SetValue(config.prefs.autodetectencoding)
         self.chksaveonrun.SetValue(config.prefs.saveonrun)
-        self.chkchecksyntaxonsave.SetValue(config.prefs.checksyntaxonsave)
         self.txtchecksyntaxextensions.SetValue(config.prefs.checksyntaxextensions)
         self.chkpromptonsaveall.SetValue(config.prefs.promptonsaveall)
         self.chkdoubleclicktoclosetab.SetValue(config.prefs.doubleclicktoclosetab)

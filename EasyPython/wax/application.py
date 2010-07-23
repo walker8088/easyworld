@@ -30,8 +30,6 @@ class Application(wx.App):
         
         if hasattr(self.mainframe.__class__, "__ExceptHook__"):
             sys.excepthook = self.mainframe.__ExceptHook__
-        else :
-            sys.excepthook = self.__ExceptHook__
         
         self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
         
@@ -47,12 +45,6 @@ class Application(wx.App):
     def Run(self):
         self.MainLoop()
         self.Unbind(wx.EVT_ACTIVATE_APP) # needed for wxpython 2.9, else deadobject error, because of delivering event
-    
-    def __ExceptHook__(self, exctype, value, tb):
-        s = ''.join(traceback.format_exception(exctype, value, tb))
-        dlg = wx.lib.dialogs.ScrolledMessageDialog(None, s, "ErrorInfo")
-        dlg.ShowModal()
-        dlg.Destroy()
     
 # TODO:
 # it should be easy to set font, icon, etc...

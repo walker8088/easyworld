@@ -38,11 +38,12 @@ class DocManager() :
         
         self.docbook.SetDocManager(self)
     
-    def SelectDoc(self, index) :        
-
-        if self.selection == index :
-            return
+    def GetDocCount(self) :
+        return len(self.docs)
         
+    def SelectDoc(self, index) :        
+        print "SelectDoc:", index
+            
         lastDoc = None    
         if self.currDoc  :
             lastDoc = self.currDoc
@@ -60,17 +61,15 @@ class DocManager() :
                 prev_viewwhitespace = False
             
         self.selection = index
-        
-        if self.selection < 0 :
-            return
-            
-        self.currDoc = self.docs[self.selection]    
+        self.currDoc = self.docs[self.selection]
         self.docbook.SetSelection(index)
-       
+
         self.currDoc.IsActive = True
         self.currDoc.OnModified(None)
         self.currDoc.SetFocus()
-         
+        if self.currDoc.filename:
+                glob.CurrDir = os.path.split(self.currDoc.filename)[0]
+ 
         self.UpdateTitle()
         
         self.UpdateHighLightMenu()
@@ -83,33 +82,10 @@ class DocManager() :
                 self.currDoc.SetViewEOL(prev_vieweol)
             self.currDoc.SetViewWhiteSpace(prev_viewwhitespace)
 
-        if self.currDoc.filename:
-            glob.CurrDir = os.path.split(self.currDoc.filename)[0]
-        
         self.frame.UpdateSourceBrwser()
        
         glob.EventMgr.PostSelectChangedEvent(self.currDoc, index)
     
-    def GetLastDocNo(self) :            
-        docCount = len(self.docs)
-        unumbers = map(lambda x: x.untitlednumber, self.docs)
-        unumbers.sort()
-        
-        x = 0
-        last = 0
-        while x < docCount:
-            if unumbers[x] > 0:
-                if unumbers[x] != (last + 1):
-                    x = docCount
-                else:
-                    last = unumbers[x]
-                    x = x + 1
-            else:
-                x = x + 1
-        last = last + 1
-        
-        return last
-        
     def NewDoc(self) :
         last = self.GetLastDocNo()
         
@@ -128,24 +104,33 @@ class DocManager() :
         
         self.SelectDoc(len(self.docs)-1)
 
-    def CloseDoc(self, index) :    
+    def CloseDoc(self) :    
     
-        doc  = self.docs[index]
+        doc  = self.currDoc
         glob.EventMgr.PostFileClosingEvent(doc)
        
         self.docs.remove(doc)
         
-        if index == self.selection :
-            self.currDoc = None
-            self.selection = -1
-            #self.frame.UpdateMenuAndToolbar()
-        
-        if len(self.docs) == 0 :
-            self.UpdateTitle()
-            self.frame.UpdateSourceBrwser()
-       
         glob.EventMgr.PostFileClosedEvent(doc)
-          
+        
+        self.currDoc = None
+        self.selection = -1
+       
+    def CloseAll(self, Others = False) :
+        docIndex = 0
+        for doc in xrange(len(self.docs)) :
+            if Others and index == self.select :
+                docIndex = 1
+                continue
+            self.SelectDoc(docIndex)
+            self.CloseDoc()    
+        
+    #**********************************************************************************
+    def GetOpened(self):
+        def _get_filename(x):
+            return x.filename.lower()
+        return map(_get_filename, self.docs)
+
     def OpenOrSwitchToFile(self, filename):
         filename = filename.replace("\\", "/")
         alreadyopen = self.GetOpened()
@@ -269,49 +254,69 @@ class DocManager() :
        
         wx.EndBusyCursor()
         
-    def SaveFile(self, docPos, IsSaveAs = False, encoding='FromText'):
+    def SaveFile(self, SaveAsName = None):
         
-        doc = self.docs[docPos]
+        doc = self.currDoc
+        
+        
+        if SaveAsName :
+            oldname = doc.filename
+            doc.filename = SaveAsName
+            
         glob.EventMgr.PostFileSavingEvent(doc)
-       
-        #Submitted Write Access Patch.
-        #Edited slightly by Dan (one if statement, string format).
-        if (not os.access(self.docs[docPos].filename, os.W_OK)) and \
-            (os.path.exists(self.docs[docPos].filename)):
-            utils.ShowMessage('Error: Write Access: "%s"' % (self.docs[docPos].filename), 'Save Error')
+        
+        if os.path.exists(doc.filename) and (not os.access(doc.filename, os.W_OK)):
+            utils.ShowMessage(u'写入文件: "%s" 时发生错误, 请检查文件权限问题。' % (doc.filename), u'保存错误')
+            
+            if SaveAsName :
+                doc.filename = oldname
+            
             return False
+            
         try:
-            if config.prefs.backupfileonsave and not IsSaveAs:
-                try:
-                    shutil.copyfile(self.docs[docPos].filename, self.docs[docPos].filename+".bak")
-                except:
-                    utils.ShowMessage(("Error Backing up to: " + self.docs[docPos].filename + ".bak"), "EasyPython Error")
+            try:
+                shutil.copyfile(doc.filename, doc.filename + ".bak")
+            except:
+                utils.ShowMessage((u"备份文件到: " + doc.filename + ".bak 发生错误"),  u'保存错误')
 
-            if encoding == 'FromText':
-                encoding = self.docs[docPos].GetEncoding()
+            encoding = doc.GetEncoding()
 
-            self.RemoveTrailingWhitespace(docPos)
+            self.RemoveTrailingWhitespace()
 
-            ctext = drEncoding.DecodeText(self.docs[docPos].GetText(), encoding)
+            ctext = drEncoding.DecodeText(doc.GetText(), encoding)
 
-            cfile = file(self.docs[docPos].filename, 'wb')
+            cfile = file(doc.filename, 'wb')
             cfile.write(ctext)
             cfile.close()
 
             #Save Stat Info:
-            self.docs[docPos].mtime = int(os.stat(self.docs[docPos].filename).st_mtime)
-        except:
-            utils.ShowMessage(("Error Writing: " + self.docs[docPos].filename), "EasyPython Error")
-            return False
+            doc.mtime = int(os.stat(doc.filename).st_mtime)
             
+        except:
+            utils.ShowMessage(("写入文件错误: " + doc.filename), u'保存错误')
+            
+            if SaveAsName :
+                doc.filename = oldname
+            
+            return False
         
-        self.docs[docPos].SetSavePoint()
-        self.docs[docPos].OnModified(None)
-
+        if doc.untitlednumber > 0:
+            doc.untitlednumber = -1
+            
+        doc.SetSavePoint()
+        doc.OnModified(None)
+        
+        doc.SetupPrefsDocument()
+        
+        glob.CurrDir = os.path.dirname(doc.filename)
+        
+        self.UpdateHighLightMenu()
+        
         glob.EventMgr.PostFileSavedEvent(doc)
        
         return True
     
+    #**********************************************************************************
     def UpdateDocs(self) :    
         for Document in self.docs:
             if not Document.filename:
@@ -339,45 +344,40 @@ class DocManager() :
         else :
             self.frame.SetTitle("EasyPython")
             
-    def GetOpened(self):
-        def _get_filename(x):
-            return x.filename.lower()
-        return map(_get_filename, self.docs)
+    #**********************************************************************************
+    def RemoveTrailingWhitespace(self):
+        if not config.prefs.docremovetrailingwhitespace[self.currDoc.filetype]:
+                return
+                
+        eol = self.currDoc.GetEndOfLineCharacter()
+        lines = self.currDoc.GetText().split(eol)
+        new_lines = []
+        nr_lines = 0
+        nr_clines = 0
+        regex = re.compile('\s+' + eol, re.MULTILINE)
 
-    def GetFileName(self):
-        return self.currDoc.filename
-            
-    def RemoveTrailingWhitespace(self, docPos):
-        if config.prefs.docremovetrailingwhitespace[self.currDoc.filetype]:
-            eol = self.currDoc.GetEndOfLineCharacter()
-            lines = self.currDoc.GetText().split(eol)
-            new_lines = []
-            nr_lines = 0
-            nr_clines = 0
-            regex = re.compile('\s+' + eol, re.MULTILINE)
+        for line in lines:
+            nr_lines += 1
+            result = regex.search(line + eol)
+            if result is not None:
+                end = result.start()
+                nr_clines += 1
+                new_lines.append (line [:end])
+            else:
+                new_lines.append(line)
 
-            for line in lines:
-                nr_lines += 1
-                result = regex.search(line + eol)
-                if result is not None:
-                    end = result.start()
-                    nr_clines += 1
-                    new_lines.append (line [:end])
-                else:
-                    new_lines.append(line)
-
-            changed = False
-            if nr_clines > 0:
-                    changed = True
-                    newtext = string.join(new_lines, eol)
-                    #save current line
-                    curline = self.currDoc.GetCurrentLine()
-                    self.currDoc.SetText(newtext)
-                    #jump to saved current line
-                    self.currDoc.GotoLine(curline)
-                    self.frame.SetStatusText("Removed trailing whitespaces", 2)
-            if not changed:
-                self.frame.SetStatusText("", 2)
+        changed = False
+        if nr_clines > 0:
+                changed = True
+                newtext = string.join(new_lines, eol)
+                #save current line
+                curline = self.currDoc.GetCurrentLine()
+                self.currDoc.SetText(newtext)
+                #jump to saved current line
+                self.currDoc.GotoLine(curline)
+                self.frame.SetStatusText("Removed trailing whitespaces", 2)
+        if not changed:
+            self.frame.SetStatusText("", 2)
 
     def FormatMode(self, mode) :    
         wx.BeginBusyCursor()
@@ -698,3 +698,33 @@ class DocManager() :
             emode = wx.stc.STC_EOL_LF
             
         doc.SetEOLMode(emode)
+    
+    #**********************************************************************************
+    
+    def GetFileName(self):
+        if not self.currDoc :
+            return None
+        return self.currDoc.filename
+            
+    def GetLastDocNo(self) :            
+        docCount = len(self.docs)
+        unumbers = map(lambda x: x.untitlednumber, self.docs)
+        unumbers.sort()
+        
+        x = 0
+        last = 0
+        while x < docCount:
+            if unumbers[x] > 0:
+                if unumbers[x] != (last + 1):
+                    x = docCount
+                else:
+                    last = unumbers[x]
+                    x = x + 1
+            else:
+                x = x + 1
+        last = last + 1
+        
+        return last
+        
+    #**********************************************************************************
+    
