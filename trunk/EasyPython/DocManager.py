@@ -274,10 +274,11 @@ class DocManager() :
             return False
             
         try:
-            try:
-                shutil.copyfile(doc.filename, doc.filename + ".bak")
-            except:
-                utils.ShowMessage((u"备份文件到: " + doc.filename + ".bak 发生错误"),  u'保存错误')
+            if os.path.exists(doc.filename) :
+                try:
+                    shutil.copyfile(doc.filename, doc.filename + ".bak")
+                except:
+                    utils.ShowMessage((u"备份文件到: " + doc.filename + ".bak 发生错误"),  u'保存错误')
 
             encoding = doc.GetEncoding()
 
@@ -466,15 +467,16 @@ class DocManager() :
         fn = self.docs[docNumber].GetFileName()
         if not self.docs[docNumber].filename:
             return False
-        #Check Syntax First
+        
+        encoding = self.docs[docNumber].GetEncoding()
+        ctext = drEncoding.DecodeText(self.docs[docNumber].GetText(), encoding)
+        ctext = ctext.replace('\r\n', '\n').replace('\r', '\n')
+        #Check Syntax First    
         try:
-            encoding = self.docs[docNumber].GetEncoding()
-            ctext = drEncoding.DecodeText(self.docs[docNumber].GetText(), encoding)
-            ctext = ctext.replace('\r\n', '\n').replace('\r', '\n')
             compile(ctext, fn, 'exec')
         except Exception, e:
             excstr = str(e)
-            result = glob.RecheckSyntax.search(excstr)
+            result = self.RecheckSyntax.search(excstr)
             if result is not None:
                 num = result.group()[5:].strip()
                 try:
@@ -482,15 +484,15 @@ class DocManager() :
                     self.SelectDoc(docNumber)
                     self.currDoc.ScrollToLine(n)
                     self.currDoc.GotoLine(n)
-                    utils.ShowMessage('compile:\n' + excstr)
+                    utils.ShowMessage(u'在第 %s 行处语法检查出错:\n' %num)
                     self.currDoc.SetSTCFocus(True)
                     self.currDoc.SetFocus()
                     #Stop the function here if something is found.
                     return False
                 except:
-                    utils.ShowMessage('Line Number Error:\n\n'+excstr, u'语法错误(Syntax Error)')
+                    utils.ShowMessage(u'语法检查出错:\n\n'+excstr, u'语法错误(Syntax Error)')
             else:
-                utils.ShowMessage('No Line Number Found:\n\n' + excstr, u'语法错误(Syntax Error)')
+                utils.ShowMessage('语法检查出错:\n\n' + excstr, u'语法错误(Syntax Error)')
 
         #Now Check Indentation
         result = drTabNanny.Check(fn)

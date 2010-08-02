@@ -423,8 +423,22 @@ class MainFrame(wx.Frame):
         
     #**********************************************************************************
     def OnSaveAll(self, event):
-        self.PromptSaveAll()
-       
+        if glob.docMgr.GetDocCount() == 0:
+            return False
+    
+        oldpos = glob.docMgr.selection
+        
+        i = 0
+        for doc in self.docMgr.docs :
+            if doc.GetModify():
+                glob.docMgr.SelectDoc(i)
+                self.OnSaveFile(None)
+            i += 1
+            
+        glob.docMgr.SelectDoc(oldpos)
+
+        return True
+
     def OnCloseFile(self, event):
         if not glob.docMgr.currDoc:
             return
@@ -502,7 +516,7 @@ class MainFrame(wx.Frame):
                 largs = ' ' + glob.LastProgArgs
                 
         if config.PLATFORM_IS_WIN:
-                self.RunCmd((config.pythexecw + " -u " +  config.prefs.pythonargs + ' "' +
+                self.RunCmd(("cmd /k " + config.pythexecw + ' "' +
                          glob.docMgr.currDoc.filename.replace("\\", "/") + '"' + largs),
                          "Running " + filen, filen)
         else:
@@ -565,68 +579,6 @@ class MainFrame(wx.Frame):
         d.ShowModal()
         d.Destroy()
         
-    #**********************************************************************************
-    '''
-    def OnNewPrompt(self, event):
-        l = len(self.prompts)
-
-        nextpage = drPanel(self.infobook, self.ID_APP)
-        self.prompts.append(DrPrompt(nextpage, self.ID_APP, self))
-        nextpage.SetSTC(self.prompts[l])
-        
-        self.infobook.AddPage(nextpage, "Prompt")
-
-        self.prompts[l].Finder.Copy(self.txtPrompt.Finder)
-
-        self.setPromptTo(l)
-        
-        self.txtPrompt.SetupPrefsPrompt(1)
-        self.txtPrompt.SetSTCFocus(True)
-    
-    def OnClosePrompt(self, event):
-        oldpos = self.promptPosition
-        oldfinder = self.prompts[oldpos].Finder
-        self.OnEnd(None)
-
-        if len(self.prompts) > 1:
-            self.prompts.pop(self.promptPosition)
-
-            self.infobook.DeletePage(self.promptPosition)
-            if self.promptPosition > 0:
-                self.promptPosition = self.promptPosition - 1
-            elif len(self.prompts) > 1:
-                if self.promptPosition > 0:
-                    self.promptPosition = self.promptPosition + 1
-            self.setPromptTo(self.promptPosition)
-            if oldpos > self.promptPosition:
-                if self.txtPrompt.Finder:
-                    self.txtPrompt.Finder.Copy(oldfinder)
-        else:
-            self.txtPrompt.SetText("")
-            self.txtPrompt.EmptyUndoBuffer()
-            self.txtPrompt.SetSavePoint()
-            self.UpdateMenuAndToolbar()
-            self.infobook.SetPageText(self.promptPosition, "Prompt")
-            #The set size stuff ensures that wx.widgets repaints the tab.
-            x, y = self.GetSizeTuple()
-            self.SetSize((x-1, y-1))
-            self.SetSize((x, y))
-
-
-        self.infobook.OnPageChanged(None)
-        
-    def OnTogglePrompt(self, event):
-        if self.mainpanel.PromptIsVisible:
-            self.mainpanel.PromptIsVisible = False
-            if self.hasToolBar:
-                self.toolbar.ToggleTool(self.ID_TOGGLE_PROMPT,  False)
-            glob.docMgr.currDoc.SetFocus()
-        else:
-            self.mainpanel.PromptIsVisible = True
-            if self.hasToolBar:
-                self.toolbar.ToggleTool(self.ID_TOGGLE_PROMPT,  True)
-            self.txtPrompt.SetFocus()
-    '''    
     #**********************************************************************************
     def OnToggleSourceBrowser(self, event):
         pass
@@ -795,7 +747,7 @@ class MainFrame(wx.Frame):
     def ExecuteWithPython(self, command = '', statustext = '', pythonargs='', pagetext='Python'):
         commandstring = string.join([' -u', pythonargs, config.prefs.pythonargs, command], ' ').rstrip()
         if config.PLATFORM_IS_WIN:
-            self.RunCmd((config.pythexecw + commandstring), statustext, pagetext)
+            self.RunCmd(("cmd /k " + config.pythexecw + commandstring), statustext, pagetext)
         else:
             self.RunCmd((config.pythexec + commandstring), statustext, pagetext)
     
@@ -810,18 +762,16 @@ class MainFrame(wx.Frame):
         self.runPrompt.GotoPos(self.runPrompt.editpoint)
         
         self.SetStatusText(statustext, 2)
-        
-        self.runPrompt.process = wx.Process(self)
-        #self.runPrompt.process.Redirect()
         '''
+        self.process = wx.Process(self)
+        #self.process.Redirect()
+        
         
         if type(command) == unicode:
                 command = command.encode(wx.GetDefaultPyEncoding())
-                
-        if config.PLATFORM_IS_WIN:
-            self.runPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.runPrompt.process)
-        else:
-            self.runPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC, self.runPrompt.process)
+        command += "\r\nPAUSE\r\n"
+        print command    
+        self.runPrompt.pid = wx.Execute(command, wx.EXEC_SYNC , self.process)
         
         '''
         self.runPrompt.inputstream = self.runPrompt.process.GetInputStream()
@@ -1084,6 +1034,10 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
               
 #*******************************************************************************************************
-if __name__ == '__main__':
+def main() :
     app = Application(MainFrame)
     app.Run()
+    
+#*******************************************************************************************************
+if __name__ == '__main__':
+    main()

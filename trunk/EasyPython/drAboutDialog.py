@@ -75,7 +75,7 @@ class drAboutContentPanel(wx.Panel):
 
         credits = drStaticLink(self, 1, ' Credits ', config.AppDir + "/documentation/credits.html", drframe)
 
-        website = drStaticLink(self, 2, ' http://easypython.sourceforge.net/ ', 'http://easypython.sourceforge.net/', drframe)
+        website = drStaticLink(self, 2, ' http://code.google.com/p/easyworld/', 'http://code.google.com/p/easyworld/', drframe)
 
         self.theSizer = wx.BoxSizer(wx.VERTICAL)
         tempstat = wx.lib.stattext.GenStaticText(self, -1, '   ')
