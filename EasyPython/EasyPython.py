@@ -97,7 +97,7 @@ class MainFrame(wx.Frame):
         glob.LoadPopUpFile()
         self.Printer = DrPrinter(self)
         
-        self.Bind(wx.EVT_END_PROCESS,  self.OnProcessEnded, id=-1)
+        #self.Bind(wx.EVT_END_PROCESS,  self.OnProcessEnded, id=-1)
         
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_CLOSE, self.OnCloseW)
@@ -537,7 +537,7 @@ class MainFrame(wx.Frame):
             self.UpdateMenuAndToolbar()
             wx.Process_Kill(self.txtPrompt.pid, wx.SIGKILL)
             self.txtPrompt.SetReadOnly(1)
-
+    '''
     def OnProcessEnded(self, event):
         #Set the process info to the correct position in the array.
     
@@ -571,7 +571,7 @@ class MainFrame(wx.Frame):
             self.infobook.SetPageImage(i, 0)
             
         glob.docMgr.currDoc.SetFocus()
-    
+    '''
     #**********************************************************************************
     def OnPrefs(self, event):
         from drPrefsDialog import drPrefsDialog
@@ -752,35 +752,13 @@ class MainFrame(wx.Frame):
             self.RunCmd((config.pythexec + commandstring), statustext, pagetext)
     
     def RunCmd(self, command, statustext = "Running Command", pagetext="Prompt", redin="", redout = "", rederr=""):
-        '''
-        self.runPrompt.SetReadOnly(0)
-        self.runPrompt.SetText(command + '\n')
-            
-        #self.infobook.SetPageImage(self.promptPosition, 3)
-        self.runPrompt.SetScrollWidth(1)
-        self.runPrompt.editpoint = self.runPrompt.GetLength()
-        self.runPrompt.GotoPos(self.runPrompt.editpoint)
         
-        self.SetStatusText(statustext, 2)
-        '''
-        self.process = wx.Process(self)
-        #self.process.Redirect()
-        
+        process = wx.Process(self) 
         
         if type(command) == unicode:
                 command = command.encode(wx.GetDefaultPyEncoding())
-        command += "\r\nPAUSE\r\n"
-        print command    
-        self.runPrompt.pid = wx.Execute(command, wx.EXEC_SYNC , self.process)
-        
-        '''
-        self.runPrompt.inputstream = self.runPrompt.process.GetInputStream()
-        self.runPrompt.errorstream = self.runPrompt.process.GetErrorStream()
-        self.runPrompt.outputstream = self.runPrompt.process.GetOutputStream()
-
-        self.runPrompt.process.redirectOut = redout
-        self.runPrompt.process.redirectErr = rederr
-        '''
+    
+        wx.Execute(command, wx.EXEC_ASYNC , process)
         
     #**********************************************************************************
     def GetActiveSTC(self):
@@ -872,6 +850,7 @@ class MainFrame(wx.Frame):
         pass
         
     #**********************************************************************************
+    '''
     def setPromptTo(self, number):
         oldfinder = self.prompts[self.promptPosition].Finder
 
@@ -905,7 +884,7 @@ class MainFrame(wx.Frame):
             if self.hasToolBar:
                 self.toolbar.ToggleTool(self.ID_TOGGLE_PROMPT,  False)
             glob.docMgr.currDoc.SetFocus()
-        
+    '''    
     def updatePrefs(self, oldprefs):
         #Styling:
         
@@ -1001,6 +980,9 @@ class MainFrame(wx.Frame):
             if doc.GetModify():
                 tosaveArray.append(i)
             i += 1
+        
+        if len(tosaveArray) == 0 :
+            return
             
         d = wx.lib.dialogs.MultipleChoiceDialog(self, u"需要保存这些文件吗?", u"保存", tosaveLabels, size=(300, 300))
         
