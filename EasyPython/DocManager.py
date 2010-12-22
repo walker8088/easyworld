@@ -192,7 +192,7 @@ class DocManager() :
             except:
                 utils.ShowMessage('There was an error opening the document %s.' % (filename), 'Open Error')
                 wx.EndBusyCursor()
-                self.frame.OnClose(None)
+                self.frame.OnCloseFile(None)
                 return
             
             cfile.close()

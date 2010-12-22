@@ -103,21 +103,15 @@ def OnPopUpMenu(stc, event):
                 pass
 
 def SetUpPopUpActions(frame):
-
-    actiondictionary = {"New":frame.OnNew, "Open":frame.OnOpen, 
-    "Save All Documents":frame.OnSaveAll,
-    "Close All Documents":frame.OnCloseAllDocuments, "Close All Other Documents":frame.OnCloseAllOtherDocuments,
-    "Print Setup":frame.OnPrintSetup, "Print File":frame.OnPrint,
-    "Exit":frame.OnExit,
-    "Find":frame.OnMenuFind, "Find Next":frame.OnMenuFindNext, "Find Previous":frame.OnMenuFindPrevious,
+    actiondictionary = {
+    "Find":frame.OnMenuFind, 
+    "Find Next":frame.OnMenuFindNext, 
+    "Find Previous":frame.OnMenuFindPrevious,
     "Replace":frame.OnMenuReplace,
-    "Source Browser Go To":frame.OnSourceBrowserGoTo,
-    "Comment":frame.OnCommentRegion, "UnComment":frame.OnUnCommentRegion,
-    "Indent":frame.OnIndentRegion, "Dedent":frame.OnDedentRegion,
-    "Toggle Source Browser":frame.OnToggleSourceBrowser, "Toggle View Whitespace":frame.OnToggleViewWhiteSpace,
-    "Toggle Prompt":frame.OnTogglePrompt,
-    "Run":frame.OnRun, "Set Arguments":frame.OnSetArgs, "Python":frame.OnPython,
-    "End":frame.OnEnd, "Check Syntax":frame.OnCheckSyntax,
+    "Indent":frame.OnIndentRegion, 
+    "Dedent":frame.OnDedentRegion,
+    "Toggle View Whitespace":frame.OnToggleViewWhiteSpace,
+    "Check Syntax":frame.OnCheckSyntax,
     }
 
     return actiondictionary

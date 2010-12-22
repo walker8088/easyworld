@@ -78,16 +78,15 @@ class MainFrame(wx.Frame):
         self.docbook = DocNotebook(self)
         self.docMgr = glob.docMgr = DocManager(self, self.docbook)
         
-        self._mgr.AddPane(self.docbook, aui.AuiPaneInfo().Name("docbook").
-                          CenterPane().PaneBorder(False))
+        self._mgr.AddPane(self.docbook, aui.AuiPaneInfo().Name("docbook").CenterPane().PaneBorder(False))
         
         self.SourceBrowser = drSourceBrowserPanel(self, -1, config.prefs.sourcebrowserpanel, -1)
     
         self._mgr.AddPane(self.SourceBrowser, aui.AuiPaneInfo().Name("source_browser").Caption(u"源代码浏览器").
-                          Left().CloseButton(True).MaximizeButton(False).MinimizeButton(False).MinSize((250, -1)))
+                          Right().Show(False).CloseButton(True).MaximizeButton(False).MinimizeButton(False).MinSize((250, -1)))
   
         self.infobook = aui.AuiNotebook(self, -1, (0, 0), wx.Size(430, 200), style = 0)
-        self._mgr.AddPane(self.infobook, aui.AuiPaneInfo().Name("infobook").Bottom().CaptionVisible(False).PaneBorder(False))
+        self._mgr.AddPane(self.infobook, aui.AuiPaneInfo().Name("infobook").Bottom().Show(False).CaptionVisible(False).PaneBorder(False))
         
         self.runPrompt = DrPrompt(self)
         self.infobook.AddPage(self.runPrompt, u"程序输出")
@@ -111,10 +110,11 @@ class MainFrame(wx.Frame):
         tb1 = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize,
                             aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
         tb1.SetToolBitmapSize(wx.Size(32, 32))
-        glob.action['new'].AppendToAuiToolBar(tb1)
         glob.action['open'].AppendToAuiToolBar(tb1)
+        glob.action['new'].AppendToAuiToolBar(tb1)
         glob.action['save'].AppendToAuiToolBar(tb1)
         glob.action['save_all'].AppendToAuiToolBar(tb1)
+        glob.action['close'].AppendToAuiToolBar(tb1)
         glob.action['print'].AppendToAuiToolBar(tb1)
         #tb1.SetCustomOverflowItems(prepend_items, append_items)
         tb1.Realize()
@@ -138,10 +138,19 @@ class MainFrame(wx.Frame):
                             aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
         tb3.SetToolBitmapSize(wx.Size(32, 32))
         glob.action['check_syntax'].AppendToAuiToolBar(tb3)
+        glob.action['run_python'].AppendToAuiToolBar(tb3)
         glob.action['run'].AppendToAuiToolBar(tb3)
         glob.action['end'].AppendToAuiToolBar(tb3)
         tb3.Realize()
         self._mgr.AddPane(tb3, aui.AuiPaneInfo().Name("toolbar3").ToolbarPane().Top().PaneBorder(True))
+        
+        tb4 = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize,
+                            aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
+        tb4.SetToolBitmapSize(wx.Size(32, 32))
+        glob.action['toggle_source_browser'].AppendToAuiToolBar(tb4)
+        glob.action['options'].AppendToAuiToolBar(tb4)
+        tb4.Realize()
+        self._mgr.AddPane(tb4, aui.AuiPaneInfo().Name("toolbar4").ToolbarPane().Top().PaneBorder(True))
         
     def CreateActions(self) :
         acts = Actions(self)
@@ -163,7 +172,11 @@ class MainFrame(wx.Frame):
         acts.AddAction("undo",  u'撤销', self.OnUndo)
         acts.AddAction("redo",  u'重做', self.OnRedo)
         
+        acts.AddAction("toggle_source_browser",  u'切换源代码浏览器', self.OnToggleSourceBrowser)
+        acts.AddAction('options', u"系统设置", self.OnPrefs)
+        
         acts.AddAction("check_syntax",  u'语法检查', self.OnCheckSyntax)
+        acts.AddAction("run_python",    u'运行Python解释器', self.OnPython)
         acts.AddAction("run",           u'运行程序', self.OnRun)
         acts.AddAction("end",           u'结束运行', self.OnEnd)
         
@@ -171,7 +184,6 @@ class MainFrame(wx.Frame):
                         
         #acts.AddAction('exit', u"退出系统", glob.getBitmap('exit'), self.OnCmdExit)
         
-        #acts.AddAction('setup', u"系统设置", glob.getBitmap('options'), self.OnCmdSetup)
         
         return acts
         
@@ -208,10 +220,6 @@ class MainFrame(wx.Frame):
         
         self.Bind(wx.EVT_MENU,  self.OnExit, id=self.ID_EXIT)
 
-        self.commentmenu = drMenu(self)
-        self.commentmenu.Append(self.ID_COMMENT_REGION, u'注释(Comment)')
-        self.commentmenu.Append(self.ID_UNCOMMENT_REGION, u'注释清除(UnComment)')
-
         self.whitespacemenu = drMenu(self)
         self.whitespacemenu.Append(self.ID_INDENT_REGION, u'Indent', False, 0)
         self.whitespacemenu.Append(self.ID_DEDENT_REGION, u'Dedent', False, 0)
@@ -227,38 +235,10 @@ class MainFrame(wx.Frame):
         #self.whitespacemenu.Append(self.ID_WINMODE, u"Set Line Endings To DOS/Windows Mode (\"\\r\\n\')")
         #self.whitespacemenu.Append(self.ID_MACMODE, u"Set Line Endings To Mac Mode (\"\\r\')")
 
-        self.casemenu = drMenu(self)
-        self.casemenu.Append(self.ID_UPPERCASE, u'大写(Uppercase)', False, 0)
-        self.Bind(wx.EVT_MENU,  self.OnUppercase, id=self.ID_UPPERCASE)
-        self.casemenu.Append(self.ID_LOWERCASE, u'小写(Lowercase)', False, 0)
-        self.Bind(wx.EVT_MENU,  self.OnLowercase, id=self.ID_LOWERCASE)
-        
-        self.editmenu = drMenu(self)
-              
-        self.editmenu.Append(self.ID_UNDO, u'撤销(Undo)', False, 0)
-        self.Bind(wx.EVT_MENU,  self.OnUndo, id=self.ID_UNDO)
-        self.editmenu.Append(self.ID_REDO, u'重做(Redo)', False, 1)
-        self.Bind(wx.EVT_MENU,  self.OnRedo, id=self.ID_REDO)
-        self.editmenu.AppendSeparator()
-
-        self.editmenu.Append(self.ID_CUT, u'剪切(Cut)')
-        self.editmenu.Append(self.ID_COPY, u'复制(Copy)')
-        self.editmenu.Append(self.ID_PASTE, u'粘帖(Paste)')
-        self.editmenu.Append(self.ID_DELETE, u'删除(Delete)')
-
-        self.editmenu.AppendSeparator()
-        self.editmenu.Append(self.ID_SELECT_ALL, u'全选(Select All)')
-        self.editmenu.AppendSeparator()
-        self.editmenu.AppendMenu(self.ID_COMMENT, u"注释(&Comments)", self.commentmenu)
-        #self.editmenu.AppendMenu(self.ID_WHITESPACE, u"空白(&Whitespace)", self.whitespacemenu)
-        self.editmenu.AppendMenu(self.ID_CASE, u"大小写(Case)", self.casemenu)
-
         self.Bind(wx.EVT_MENU,  self.OnMenuFind, id=self.ID_FIND)
         self.Bind(wx.EVT_MENU,  self.OnMenuFindNext, id=self.ID_FIND_NEXT)
         self.Bind(wx.EVT_MENU,  self.OnMenuFindPrevious, id=self.ID_FIND_PREVIOUS)
         self.Bind(wx.EVT_MENU,  self.OnMenuReplace, id=self.ID_REPLACE)
-
-        self.Bind(wx.EVT_MENU,  self.OnSelectAll, id=self.ID_SELECT_ALL)
 
         self.Bind(wx.EVT_MENU,  self.OnIndentRegion, id=self.ID_INDENT_REGION)
         self.Bind(wx.EVT_MENU,  self.OnDedentRegion, id=self.ID_DEDENT_REGION)
@@ -326,11 +306,11 @@ class MainFrame(wx.Frame):
                          u"脚本(D&rScript)", u"选项(&Options)", u"帮助(&Help)"]
 
         self.menuBar.Append(self.filemenu, menuBarNames[0])
-        self.menuBar.Append(self.editmenu, menuBarNames[1])
+        #self.menuBar.Append(self.editmenu, menuBarNames[1])
         self.menuBar.Append(self.searchmenu, menuBarNames[2])
         self.menuBar.Append(self.viewmenu, menuBarNames[3])
         self.menuBar.Append(self.ProgramMenu, menuBarNames[4])
-        self.menuBar.Append(self.optionsmenu, menuBarNames[7])
+        #self.menuBar.Append(self.optionsmenu, menuBarNames[7])
         self.menuBar.Append(self.helpmenu, menuBarNames[8])
 
         self.SetMenuBar(self.menuBar)
@@ -473,6 +453,7 @@ class MainFrame(wx.Frame):
         pass
         
     #**********************************************************************************
+    
     def OnCheckSyntax(self, event):
         if glob.docMgr.selection < 0 :
                 return
@@ -581,8 +562,13 @@ class MainFrame(wx.Frame):
         
     #**********************************************************************************
     def OnToggleSourceBrowser(self, event):
-        pass
-    
+        pane = self._mgr.GetPane('source_browser')    
+        if pane.IsShown() :
+                pane.Show(False)
+        else :
+                pane.Show(True)
+        self._mgr.Update()
+        
     #**********************************************************************************
     def OnSourceBrowserGoTo(self, event):
         drSourceBrowserGoTo.SourceBrowserGoTo(self, glob.docMgr.currDoc)
