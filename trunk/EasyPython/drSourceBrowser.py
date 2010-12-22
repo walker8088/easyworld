@@ -167,7 +167,8 @@ class drSourceBrowserPanel(wx.Panel):
         self.mixed = 0
 
         self.renext = re.compile(r'^[ \t]*[^#^\s]', re.M)
-        self.reinspect = re.compile(r'(^[ \t]*?class\s.*[(:])|(^[ \t]*?def\s.*[(:])|(^[ \t]*?import\s.*$)|(^[ \t]*?from\s.*$)|(^\s*#---.+)', re.MULTILINE)
+        self.reinspect = re.compile(r'(^[ \t]*?class\s.*[(:])|(^[ \t]*?def\s.*[(:])|(^[ \t]*?import\s.*$)|(^[ \t]*?from\s.*$)|(^\s*#---.+)', 
+                                re.MULTILINE)
         
         self.classtree = drTree(self, -1, wx.Point(0, 0), (400, 200), wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT, parent)
 
@@ -175,23 +176,26 @@ class drSourceBrowserPanel(wx.Panel):
         self.btnRefresh = wx.Button(self, 102, u"刷新(&Refresh)")
 
         self.theSizer.Add(self.classtree, 9, wx.EXPAND)
-        self.bSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.bSizer.Add(self.btnRefresh, 0,  wx.SHAPED | wx.ALIGN_LEFT)
+        self.theSizer.Add(self.btnRefresh, 0, wx.EXPAND)
+        
+        #self.bSizer = wx.BoxSizer(wx.HORIZONTAL)
+        #self.bSizer.Add(self.btnRefresh, 0,  wx.SHAPED | wx.ALIGN_LEFT)
         #self.bSizer.Add(self.btnClose, 0,  wx.SHAPED | wx.ALIGN_LEFT)
-        self.edSearch = wx.TextCtrl(self, -1, "",size=(-1,-1)) #edit for search in tree
-        self.bSizer.Add(self.edSearch, 1,   wx.ALIGN_RIGHT)
-        self.theSizer.Add(self.bSizer, 0, wx.EXPAND)
+        #self.edSearch = wx.TextCtrl(self, -1, "",size=(-1,-1)) #edit for search in tree
+        #self.bSizer.Add(self.edSearch, 1,   wx.ALIGN_RIGHT)
+        #self.theSizer.Add(self.bSizer, 0, wx.EXPAND)
 
         self.position = Position
         self.Index = Index
 
-        self.Bind(wx.EVT_BUTTON, self.OnBtnClose, id=101)
-        self.Bind(wx.EVT_BUTTON, self.OnBtnRefresh, id=102)
+        #self.Bind(wx.EVT_BUTTON, self.OnBtnClose, id=101)
+        self.Bind(wx.EVT_BUTTON, self.OnRefresh, id=102)
         
-        #glob.EventMgr.BindEvent(EventManager.EVT_DOC_CHANGED, self.OnBtnRefresh, None)
+        glob.EventMgr.Bind(EventManager.EVT_SELECT_CHANGED, self.OnRefresh, None)
+        glob.EventMgr.Bind(EventManager.EVT_FILE_CLOSED, self.OnFileClosed, None)
         
-        self.edSearch.Bind(wx.EVT_KEY_UP, self.OnEdSearch)
-        self.edSearch.SetToolTipString("Search in the class-tree")
+        #self.edSearch.Bind(wx.EVT_KEY_UP, self.OnEdSearch)
+        #self.edSearch.SetToolTipString("Search in the class-tree")
         
         '''
         if not self.Browse():
@@ -357,7 +361,8 @@ class drSourceBrowserPanel(wx.Panel):
         self.classtree.Thaw()
         
         return wasnotmixed
-
+    
+    '''
     def OnEdSearch(self, event): #search on tree
         o=event.GetEventObject()
         s=o.GetValue().lower()
@@ -400,12 +405,18 @@ class drSourceBrowserPanel(wx.Panel):
         #self.parent.SourceBrowser = None
         #self.panelparent.ClosePanel(self.position, self.Index)
         pass
-        
-    def OnBtnRefresh(self, event):
+    '''
+    
+    def OnRefresh(self, event):
         self.Browse()
         if event is not None:
             event.Skip()
-
+    
+    def OnFileClosed(self, event):
+        self.classtree.DeleteAllItems()
+        if event is not None:
+            event.Skip()
+    
     def RemoveTripleQuotedString(self, text):
         text = self.RemoveStringTripleQuotedWith(text, "'''")
         text = self.RemoveStringTripleQuotedWith(text, '"""')
