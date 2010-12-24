@@ -24,7 +24,7 @@
 
 import wx, wx.stc
 
-import config, glob
+import config, EpyGlob
 
 #*******************************************************************************************************
 #Submitted by Slim Amamou
@@ -55,17 +55,17 @@ class drDropTarget(wx.DropTarget):
         filenames = map(lambda x: x.replace("\\", "/"), filenames)
         
         for fname in filenames:
-            glob.MainFrame.OpenOrSwitchToFile(fname)
+            EpyGlob.mainFrame.OpenOrSwitchToFile(fname)
 
     def DropText(self, text, point):
         if config.prefs.draganddropmode != 2:
             if self.draginitiatedfromstc:
                 if ((config.prefs.draganddroptextmode == 0) and self.moddown) or \
                 ((config.prefs.draganddroptextmode == 1) and (not self.moddown)):
-                    glob.Mainframe.currDoc.SetSelectedText('')
-            position = glob.Mainframe.currDoc.PositionFromPoint(point)
-            glob.Mainframe.currDoc.InsertText(position, text)
-            glob.Mainframe.currDoc.GotoPos(position+len(text))
+                    EpyGlob.mainFrame.currDoc.SetSelectedText('')
+            position = EpyGlob.mainFrame.currDoc.PositionFromPoint(point)
+            EpyGlob.mainFrame.currDoc.InsertText(position, text)
+            EpyGlob.mainFrame.currDoc.GotoPos(position+len(text))
 
 
     def OnDrop(self, x, y):

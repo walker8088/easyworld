@@ -30,7 +30,7 @@ import drEncoding
 import drKeywords
 import drSTC
 
-import config, glob
+import config, EpyGlob
 import utils
 
 reserved = [wx.stc.STC_CMD_NEWLINE, wx.stc.STC_CMD_CHARLEFT,
@@ -210,18 +210,18 @@ class DrPrompt(drSTC.DrStyledTextControl):
                 
         if self.foundvalidline:
             if os.path.exists(self.gotofilename):
-                glob.Mainframe.OpenOrSwitchToFile(self.gotofilename, editRecentFiles=False)
+                EpyGlob.mainFrame.OpenOrSwitchToFile(self.gotofilename, editRecentFiles=False)
 
-                #glob.Mainframe.currDoc.ScrollToLine(linenumber)
+                #EpyGlob.mainFrame.currDoc.ScrollToLine(linenumber)
                 #patch: [ 1366679 ] Goto Line Should Not Display At Top Of Window
-                top = self.gotolinenumber - glob.Mainframe.currDoc.LinesOnScreen()/2
+                top = self.gotolinenumber - EpyGlob.mainFrame.currDoc.LinesOnScreen()/2
                 if top < 0:
                     top = 0
-                glob.Mainframe.currDoc.ScrollToLine(top)
+                EpyGlob.mainFrame.currDoc.ScrollToLine(top)
                 
-                glob.Mainframe.currDoc.GotoLine(self.gotolinenumber)
-                glob.Mainframe.currDoc.EnsureCaretVisible()
-                glob.Mainframe.currDoc.SetFocus()
+                EpyGlob.mainFrame.currDoc.GotoLine(self.gotolinenumber)
+                EpyGlob.mainFrame.currDoc.EnsureCaretVisible()
+                EpyGlob.mainFrame.currDoc.SetFocus()
 
     def CheckAndCorrectAsciiText(self, text):
         newtext = str()
@@ -236,7 +236,7 @@ class DrPrompt(drSTC.DrStyledTextControl):
     def OnKeyDown(self, event):
         if self.pid == -1:
             return
-        result = glob.Mainframe.RunShortcuts(event)
+        result = EpyGlob.mainFrame.RunShortcuts(event)
         if result > -1:
             pos = self.GetCurrentPos()
             if not self.pid == -1:

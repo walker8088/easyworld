@@ -27,7 +27,7 @@ import wx
 import drScrolledMessageDialog
 from drProperty import *
 
-import config, glob
+import config, EpyGlob
 import utils
 
 def SortBranch(dialog, branch):

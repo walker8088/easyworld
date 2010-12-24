@@ -9,7 +9,7 @@ import wx.stc
 from drText import DrText
 import drEncoding
 
-import config, glob, utils
+import config, EpyGlob, utils
 
 #*******************************************************************************************************
 class DocNotebook(aui.AuiNotebook):
@@ -52,7 +52,7 @@ class DocNotebook(aui.AuiNotebook):
         self.docMgr.SelectDoc(index)
     
     def OnPageClosing(self, event):
-        glob.MainFrame.OnCloseFile(None)
+        EpyGlob.mainFrame.OnCloseFile(None)
     
     def OnPageClosed(self, event):
         count = self.GetPageCount()
@@ -61,17 +61,18 @@ class DocNotebook(aui.AuiNotebook):
         
     def OnPopUp(self, event):
         tabmenu = wx.Menu()
-        tabmenu.Append(glob.MainFrame.ID_CLOSE, u"关闭(&Close)")
-        tabmenu.Append(glob.MainFrame.ID_CLOSE_ALL, u"关闭所有页面(Close &All Tabs)")
-        tabmenu.Append(glob.MainFrame.ID_CLOSE_ALL_OTHER_DOCUMENTS, u"关闭其他所有页面(Close All &Other Tabs)")
+        '''
+        tabmenu.Append(EpyGlob.mainFrame.ID_CLOSE, u"关闭(&Close)")
+        tabmenu.Append(EpyGlob.mainFrame.ID_CLOSE_ALL, u"关闭所有页面(Close &All Tabs)")
+        tabmenu.Append(EpyGlob.mainFrame.ID_CLOSE_ALL_OTHER_DOCUMENTS, u"关闭其他所有页面(Close All &Other Tabs)")
         tabmenu.AppendSeparator()
-        tabmenu.Append(glob.MainFrame.ID_SAVE, u"保存(&Save)")
-        tabmenu.Append(glob.MainFrame.ID_SAVE_AS, u"另存为(Save &As)...")
-
+        tabmenu.Append(EpyGlob.mainFrame.ID_SAVE, u"保存(&Save)")
+        tabmenu.Append(EpyGlob.mainFrame.ID_SAVE_AS, u"另存为(Save &As)...")
+        
         ht = self.HitTest(event.GetPosition())[0]
         if ht > -1:
             self.SetSelection(ht)
-
+        '''
         self.PopupMenu(tabmenu, event.GetPosition())
         
         #tabmenu.Destroy()

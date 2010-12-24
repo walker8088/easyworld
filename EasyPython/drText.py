@@ -1,3 +1,5 @@
+#coding:utf-8
+
 #   Programmer: Daniel Pozmanter
 #   E-mail:     drpython@bluebottle.com
 #   Note:       You must reply to the verification e-mail to get through.
@@ -35,7 +37,7 @@ import drKeywords
 import drSTC
 import drEncoding
 
-import config, glob
+import config, EpyGlob
 
 #*******************************************************************************************************
 class DrText(drSTC.DrStyledTextControl):
@@ -75,7 +77,7 @@ class DrText(drSTC.DrStyledTextControl):
         self.Bind(wx.EVT_UPDATE_UI,  self.OnUpdateUI, id=id)
         #self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick, id=id)
-
+        
     def _autoindent(self):
         pos = self.GetCurrentPos()
 
@@ -186,12 +188,12 @@ class DrText(drSTC.DrStyledTextControl):
         return title
         
     def OnModified(self, event):
-        if glob.DisableEventHandling:
+        if EpyGlob.DisableEventHandling:
             return
 
         if config.prefs.sourcebrowserautorefresh:
-            if glob.MainFrame.SourceBrowser is not None:
-                glob.MainFrame.SourceBrowser.Browse()
+            if EpyGlob.mainFrame.SourceBrowser is not None:
+                EpyGlob.mainFrame.SourceBrowser.Browse()
         
         modify = self.GetModify()
         if (modify != self.modified) or (event is None):
@@ -208,8 +210,8 @@ class DrText(drSTC.DrStyledTextControl):
                     pimageidx = 0
                 self.SetSavePoint()
 
-            targetPosition = glob.docMgr.docbook.GetPageIndex(self)
-            glob.docMgr.docbook.SetPageImage(targetPosition, pimageidx)
+            targetPosition = EpyGlob.docMgr.docbook.GetPageIndex(self)
+            EpyGlob.docMgr.docbook.SetPageImage(targetPosition, pimageidx)
             
         if config.prefs.docupdateindentation:
             #If deleting text, or undo/redo:
@@ -279,8 +281,8 @@ class DrText(drSTC.DrStyledTextControl):
         % {"line": self.GetCurrentLine()+1, "col": self.GetColumn(self.GetCurrentPos()), \
         "mode": eolmodestr, "ovrstring": ovrstring, "ind": self.indentationstring}
         #reason gtk ; workaround tow for gtk, 15.03.2008, else segmentation fault
-        #wx.CallAfter (glob.MainFrame.SetStatusText,statustext, 1)
-        glob.MainFrame.SetStatusText(statustext, 1)
+        #wx.CallAfter (EpyGlob.mainFrame.SetStatusText,statustext, 1)
+        EpyGlob.mainFrame.SetStatusText(statustext, 1)
 
         if event is not None:
             event.Skip()
@@ -320,7 +322,7 @@ class DrText(drSTC.DrStyledTextControl):
         event.Skip()
 
     def OnKeyDown(self, event):
-        result = glob.MainFrame.RunShortcuts(event, self, self.DisableShortcuts)
+        result = EpyGlob.mainFrame.RunShortcuts(event, self, self.DisableShortcuts)
         if result > -1:
             if (result == wx.stc.STC_CMD_NEWLINE) and (config.prefs.docautoindent):
                 self._autoindent()
@@ -460,14 +462,14 @@ class DrText(drSTC.DrStyledTextControl):
 
         indentguide = wx.LIGHT_GREY
 
-        if (self.filetype == glob.PYTHON_FILE) or (self.filetype == glob.TEXT_FILE):
+        if (self.filetype == EpyGlob.PYTHON_FILE) or (self.filetype == EpyGlob.TEXT_FILE):
             config.prefs.txtDocumentStyleDictionary = config.prefs.PythonStyleDictionary
             cursorstyle = config.prefs.txtDocumentStyleDictionary[15]
             foldingstyle = config.prefs.txtDocumentStyleDictionary[17]
             self.SetEdgeColour(config.prefs.txtDocumentStyleDictionary[18])
             highlightlinestyle = config.prefs.txtDocumentStyleDictionary[19]
             indentguide = config.prefs.txtDocumentStyleDictionary[20]
-        elif self.filetype == glob.HTML_FILE:
+        elif self.filetype == EpyGlob.HTML_FILE:
             config.prefs.txtDocumentStyleDictionary = config.prefs.HTMLStyleDictionary
             cursorstyle = config.prefs.txtDocumentStyleDictionary[18]
             foldingstyle = config.prefs.txtDocumentStyleDictionary[20]
@@ -512,11 +514,11 @@ class DrText(drSTC.DrStyledTextControl):
 
             self.StyleSetForeground(wx.stc.STC_STYLE_INDENTGUIDE, indentguide)
 
-            if (config.prefs.docusestyles < 2) or (not self.filetype == glob.TEXT_FILE):
+            if (config.prefs.docusestyles < 2) or (not self.filetype == EpyGlob.TEXT_FILE):
                 self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER, config.prefs.txtDocumentStyleDictionary[1])
                 self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT, config.prefs.txtDocumentStyleDictionary[2])
                 self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD, config.prefs.txtDocumentStyleDictionary[3])
-                drKeywords.SetSTCStyles(glob.MainFrame, self, self.filetype)
+                drKeywords.SetSTCStyles(EpyGlob.mainFrame, self, self.filetype)
 
     def FoldAll(self, expanding):
         lineCount = self.GetLineCount()
@@ -588,3 +590,269 @@ class DrText(drSTC.DrStyledTextControl):
             else:
                 line = line + 1
         return line
+        
+    def IndentRegion(self) :    
+        #Submitted Patch:  Franz Steinhausler
+        #Submitted Patch (ModEvent Mask), Franz Steinhausler
+        beg, end = self.GetSelection()
+        begline = self.LineFromPosition(beg)
+        endline = self.LineFromPosition(end)
+
+        mask = self.GetModEventMask()
+        self.SetModEventMask(0)
+
+        if begline == endline:
+            #This section modified by Dan
+            pos = self.PositionFromLine(begline)
+            self.SetSelection(pos, pos)
+            self.GotoPos(pos)
+            self.Tab()
+            self.SetSelection(pos, self.GetLineEndPosition(begline))
+            self.SetModEventMask(mask)
+            return
+
+        #Submitted Patch:  Christian Daven
+        self.Tab()
+        self.SetModEventMask(mask)
+        
+    def DedentRegion(self) :    
+        #Submitted Patch:  Franz Steinhausler
+        #Submitted Patch (ModEvent Mask), Franz Steinhausler
+        beg, end = self.GetSelection()
+        begline = self.LineFromPosition(beg)
+        endline = self.LineFromPosition(end)
+
+        mask = self.GetModEventMask()
+        self.SetModEventMask(0)
+
+        if begline == endline:
+            #This section modified by Dan
+            pos = self.PositionFromLine(begline)
+            self.SetSelection(pos, pos)
+            self.GotoPos(pos)
+            self.BackTab()
+            self.SetSelection(pos, self.GetLineEndPosition(begline))
+            self.SetModEventMask(mask)
+            return
+
+        #Submitted Patch:  Christian Daven
+        self.BackTab()
+        self.SetModEventMask(mask)
+
+    def CommentRegion(self) :    
+        selstart, selend = self.GetSelection()
+        #From the start of the first line selected
+        oldcursorpos = self.GetCurrentPos()
+        startline = self.LineFromPosition(selstart)
+        self.GotoLine(startline)
+        start = self.GetCurrentPos()
+        #To the end of the last line selected
+        #Bugfix Chris Wilson
+        #Edited by Dan (selend fix)
+        if selend == selstart:
+            tend = selend
+        else:
+            tend = selend - 1
+        docstring = config.prefs.doccommentstring[self.filetype]
+        if os.path.splitext(self.filename)[1] == ".lua":
+            docstring = "--"
+
+        end = self.GetLineEndPosition(self.LineFromPosition(tend))
+        #End Bugfix Chris Wilson
+        eol = self.GetEndOfLineCharacter()
+        corr = 0
+        l = len(self.GetText())
+        if config.prefs.doccommentmode == 0:
+            self.SetSelection(start, end)
+            text = docstring + self.GetSelectedText()
+            text = text.replace(eol, eol + docstring)
+            self.ReplaceSelection(text)
+        else:
+            mask = self.GetModEventMask()
+            self.SetModEventMask(0)
+            wpos = start
+            while wpos < end:
+                ws = self.GetLineIndentPosition(startline)
+                le = self.GetLineEndPosition(startline)
+                if ws != le:
+                    self.InsertText(ws, docstring)
+                startline += 1
+                wpos = self.PositionFromLine(startline)
+            self.SetModEventMask(mask)
+        corr = len(self.GetText()) - l
+        self.GotoPos(oldcursorpos + corr)
+
+    def UnCommentRegion(self) :
+        #franz: pos is not used
+        selstart, selend = self.GetSelection()
+        #From the start of the first line selected
+        startline = self.LineFromPosition(selstart)
+        oldcursorpos = self.GetCurrentPos()
+        self.GotoLine(startline)
+        start = self.GetCurrentPos()
+        #To the end of the last line selected
+        #Bugfix Chris Wilson
+        #Edited by Dan (selend fix)
+        if selend == selstart:
+            tend = selend
+        else:
+            tend = selend - 1
+        end = self.GetLineEndPosition(self.LineFromPosition(tend))
+        #End Bugfix Chris Wilson
+
+        mask = self.GetModEventMask()
+        self.SetModEventMask(0)
+        lpos = start
+        newtext = ""
+        l = len(self.GetText())
+
+        docstring = config.prefs.doccommentstring[self.filetype]
+        if os.path.splitext(self.filename)[1] == ".lua":
+            docstring = "--"
+
+        ldocstring = len(docstring)
+        while lpos < end:
+            lpos = self.PositionFromLine(startline)
+            line = self.GetLine(startline)
+            lc = line.find(docstring)
+            if lc > -1:
+                prestyle = self.GetStyleAt(lpos + lc - 1)
+                style = self.GetStyleAt(lpos + lc)
+                if self.filetype == 1 or os.path.splitext(self.filename)[1] == ".lua":
+                    if 0:
+                        newtext += line
+                    else:
+                        newtext += line[0:lc] + line[lc+ldocstring:]
+                else:
+                    if not ((not (prestyle == wx.stc.STC_P_COMMENTLINE) and not (prestyle == wx.stc.STC_P_COMMENTBLOCK))\
+                    and ((style == wx.stc.STC_P_COMMENTLINE) or (style == wx.stc.STC_P_COMMENTBLOCK))):
+                        newtext += line
+                    else:
+                        newtext += line[0:lc] + line[lc+ldocstring:]
+            else:
+                newtext += line
+            startline += 1
+            lpos = self.PositionFromLine(startline)
+        self.SetModEventMask(mask)
+        self.SetSelection(start, end)
+        self.ReplaceSelection(newtext.rstrip(self.GetEndOfLineCharacter()))
+        corr = len(self.GetText()) - l
+        self.GotoPos(oldcursorpos + corr)
+   
+    #**********************************************************************************
+    def CenterCurrentLine(self, linenr):
+        self.EnsureVisible(linenr)
+        #patch: [ 1366679 ] Goto Line Should Not Display At Top Of Window
+        #self.ScrollToLine(v)h
+        top = linenr - self.LinesOnScreen()/2
+        if top < 0:
+            top = 0
+        self.ScrollToLine(top)
+        #self.GotoLine(linenr)
+        
+    def RemoveTrailingWhitespace(self):
+        if not config.prefs.docremovetrailingwhitespace[self.filetype]:
+                return
+                
+        eol = self.GetEndOfLineCharacter()
+        lines = self.GetText().split(eol)
+        new_lines = []
+        nr_lines = 0
+        nr_clines = 0
+        regex = re.compile('\s+' + eol, re.MULTILINE)
+
+        for line in lines:
+            nr_lines += 1
+            result = regex.search(line + eol)
+            if result is not None:
+                end = result.start()
+                nr_clines += 1
+                new_lines.append (line [:end])
+            else:
+                new_lines.append(line)
+
+        changed = False
+        if nr_clines > 0:
+                changed = True
+                newtext = string.join(new_lines, eol)
+                #save current line
+                curline = self.GetCurrentLine()
+                self.SetText(newtext)
+                #jump to saved current line
+                self.GotoLine(curline)
+                self.frame.SetStatusText("Removed trailing whitespaces", 2)
+        if not changed:
+            self.frame.SetStatusText("", 2)
+
+    def FormatMode(self, mode) :    
+        wx.BeginBusyCursor()
+        wx.Yield()
+        if mode == "Mac" :
+            self.SetEOLMode(wx.stc.STC_EOL_CR)
+            text = self.GetText()
+            text = EpyGlob.FormatMacReTarget.sub('\r', text)
+            self.SetText(text)
+            self.OnModified(None)
+        elif mode == "Unix" :
+            self.SetEOLMode(wx.stc.STC_EOL_LF)
+            text = self.GetText()
+            text = EpyGlob.FormatUnixReTarget.sub('\n', text)
+            self.SetText(text)
+        elif mode == 'Win' :            
+            self.SetEOLMode(wx.stc.STC_EOL_CRLF)
+            text = self.GetText()
+            text = EpyGlob.FormatWinReTarget.sub('\r\n', text)
+            self.SetText(text)
+            
+        self.OnModified(None)
+        wx.EndBusyCursor()
+    
+    def CheckSyntax(self):
+        fn = self.GetFileName()
+        if not self.filename:
+            return False
+        
+        encoding = self.GetEncoding()
+        ctext = drEncoding.DecodeText(self.GetText(), encoding)
+        ctext = ctext.replace('\r\n', '\n').replace('\r', '\n')
+        #Check Syntax First    
+        try:
+            compile(ctext, fn, 'exec')
+        except Exception, e:
+            excstr = str(e)
+            result = self.RecheckSyntax.search(excstr)
+            if result is not None:
+                num = result.group()[5:].strip()
+                try:
+                    n = int(num) - 1
+                    self.ScrollToLine(n)
+                    self.GotoLine(n)
+                    utils.ShowMessage(u'在第 %s 行处语法检查出错:\n' %num)
+                    self.SetSTCFocus(True)
+                    self.SetFocus()
+                    #Stop the function here if something is found.
+                    return False
+                except:
+                    utils.ShowMessage(u'语法检查出错:\n\n'+excstr, u'语法错误(Syntax Error)')
+            else:
+                utils.ShowMessage('语法检查出错:\n\n' + excstr, u'语法错误(Syntax Error)')
+
+        #Now Check Indentation
+        result = drTabNanny.Check(fn)
+        results = result.split()
+        if len(results) > 1:
+            num = results[1]
+            try:
+                n = int(num) - 1
+                self.ScrollToLine(n)
+                self.GotoLine(n)
+                utils.ShowMessage('tabnanny:\n' + result)
+                self.SetSTCFocus(True)
+                self.SetFocus()
+                return False
+            except:
+                utils.ShowMessage('Line Number Error:\n\n'+result, 'TabNanny Trouble')
+
+        return True
+                    
+    

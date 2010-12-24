@@ -4,7 +4,7 @@ import os
 import drShortcutsFile
 import drShortcuts
 
-import config, glob
+import config, EpyGlob
 
 class ShortcutManager :
 

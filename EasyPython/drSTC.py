@@ -31,7 +31,7 @@ import drShortcuts, drShortcutsFile
 from drDragAndDrop import drDropTarget
 from drFindReplaceDialog import drFinder
 
-import config, glob
+import config, EpyGlob
 
 #*******************************************************************************************************
 
@@ -41,11 +41,11 @@ class DrStyledTextControl(wx.stc.StyledTextCtrl):
         wx.stc.StyledTextCtrl.__init__(self, parent, id)
         self.IndicatorSetStyle(0, wx.stc.STC_INDIC_HIDDEN)
         
-        self.filetype = glob.PYTHON_FILE
+        self.filetype = EpyGlob.PYTHON_FILE
 
         self.IsAPrompt = False
         
-        self.Finder = drFinder(glob.MainFrame, self)
+        self.Finder = drFinder(EpyGlob.mainFrame, self)
         
         self.stclabelarray = drShortcutsFile.GetSTCShortcutList()
         self.stcactionarray = drShortcuts.GetSTCCommandList()
@@ -173,11 +173,11 @@ class DrStyledTextControl(wx.stc.StyledTextCtrl):
             #Line Endings First:
             emode = self.GetEOLMode()
             if emode == wx.stc.STC_EOL_CR:
-                text = glob.FormatMacReTarget.sub('\r', text)
+                text = EpyGlob.FormatMacReTarget.sub('\r', text)
             elif emode == wx.stc.STC_EOL_CRLF:
-                text = glob.FormatWinReTarget.sub('\r\n', text)
+                text = EpyGlob.FormatWinReTarget.sub('\r\n', text)
             else:
-                text = glob.FormatUnixReTarget.sub('\n', text)
+                text = EpyGlob.FormatUnixReTarget.sub('\n', text)
 
             line, pos = self.GetCurLine()
 

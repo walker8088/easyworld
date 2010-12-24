@@ -27,7 +27,7 @@
 
 import wx, re
 
-import config, glob, utils
+import config, EpyGlob, utils
 
 def utf8Detect(text):
     """Detect if a string is utf-8 encoding"""

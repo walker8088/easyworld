@@ -28,7 +28,7 @@ import drPrefsFile
 from drStyleDialog import drStyleDialog, drSimpleStyleDialog
 from drPreferences import drPreferences
 
-import config, glob
+import config, EpyGlob
 import utils
 
 #Cause I want it to work MY way!

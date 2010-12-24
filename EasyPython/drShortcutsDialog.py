@@ -30,7 +30,7 @@ import drShortcutsFile
 import drShortcuts
 from drShortcuts import MatchControl, MatchShift, MatchAlt, MatchMeta
 
-import config, glob
+import config, EpyGlob
 
 def ShortcutIsAlreadyTaken(TargetShortcut, ShortcutArrays, CurrentShortcut = None):
     if drShortcuts.GetKeycodeStringFromShortcut(TargetShortcut) == "":
@@ -456,7 +456,7 @@ class drShortcutsDialog(wx.Dialog):
             self.ShortcutsArray[0], self.ShortcutsIgnoreString = drShortcutsFile.GetDefaultShortcuts()
             self.ShortcutsArray[0], saa, sarg = drShortcuts.SetShortcuts(self.parent, self.ShortcutsArray[0], self.parent.ShortcutNames, 1)
             sel = self.boxShortcuts.GetSelection()
-            self.ShortcutsArray[1] = drShortcuts.SetSTCShortcuts(glob.docMgr.currDoc, self.ShortcutsArray[1], True)
+            self.ShortcutsArray[1] = drShortcuts.SetSTCShortcuts(EpyGlob.docMgr.currDoc, self.ShortcutsArray[1], True)
             drShortcuts.SetSTCShortcuts(self.parent.txtPrompt, self.ShortcutsArray[1], True)
             self.pnlShortcut.SetShortcut(self.ShortcutsArray[self.ShortcutsArrayPos][sel], sel, self.ShortcutsArrayPos)
 
@@ -551,7 +551,7 @@ class drShortcutsDialog(wx.Dialog):
         self.parent.ShortcutsArgumentsArray = []
 
         drShortcuts.SetSTCShortcuts(self.parent.txtPrompt, self.parent.STCShortcuts)
-        self.parent.STCShortcuts = drShortcuts.SetSTCShortcuts(glob.docMgr.currDoc, self.parent.STCShortcuts)
+        self.parent.STCShortcuts = drShortcuts.SetSTCShortcuts(EpyGlob.docMgr.currDoc, self.parent.STCShortcuts)
         self.parent.Shortcuts, self.parent.ShortcutsActionArray, self.parent.ShortcutsArgumentsArray = drShortcuts.SetShortcuts(self.parent, self.ShortcutsArray[0], self.parent.ShortcutNames)
 
         #Plugins:

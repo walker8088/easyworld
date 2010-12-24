@@ -24,34 +24,34 @@
 
 import wx.stc
 
-import config, glob, utils
+import config, EpyGlob, utils
 
 def OnPopUp(stc, event):
-        stc.actiondict = SetUpPopUpActions(glob.MainFrame)
+        stc.actiondict = SetUpPopUpActions(EpyGlob.mainFrame)
 
-        if not glob.PopupMenuList:
-            glob.PopupMenuList = ["Undo", "Redo", "<Separator>", "Cut", "Copy", "Paste", "Delete", "<Separator>", "Select All"]
+        if not EpyGlob.PopupMenuList:
+            EpyGlob.PopupMenuList = ["Undo", "Redo", "<Separator>", "Cut", "Copy", "Paste", "Delete", "<Separator>", "Select All"]
 
         stc.PopUpMenu = wx.Menu()
 
         #Franz: added getlabel functions.
 
         x = 0
-        l = len(glob.PopupMenuList)
+        l = len(EpyGlob.PopupMenuList)
         while x < l:
             try:
-                if glob.PopupMenuList[x] == "<Separator>":
+                if EpyGlob.PopupMenuList[x] == "<Separator>":
                     stc.PopUpMenu.AppendSeparator()
-                elif glob.PopupMenuList[x].find("<DrScript>") > -1:
-                    label = glob.PopupMenuList[x][glob.PopupMenuList[x].find(":")+1:]
+                elif EpyGlob.PopupMenuList[x].find("<DrScript>") > -1:
+                    label = EpyGlob.PopupMenuList[x][EpyGlob.PopupMenuList[x].find(":")+1:]
                     try:
                         i = stc.grandparent.drscriptmenu.titles.index(label)
                         stc.PopUpMenu.Append(stc.grandparent.ID_SCRIPT_BASE+i, stc.grandparent.drscriptmenu.getdrscriptmenulabel(label))
                         stc.Bind(wx.EVT_MENU, stc.OnPopUpMenu, id=stc.grandparent.ID_SCRIPT_BASE+i)
                     except:
                         pass
-                elif glob.PopupMenuList[x].find("<Plugin>") > -1:
-                    label = glob.PopupMenuList[x][glob.PopupMenuList[x].find(":")+1:]
+                elif EpyGlob.PopupMenuList[x].find("<Plugin>") > -1:
+                    label = EpyGlob.PopupMenuList[x][EpyGlob.PopupMenuList[x].find(":")+1:]
                     try:
                         i = stc.grandparent.PluginPopUpMenuLabels.index (label)
                         stc.grandparent.PluginPopUpMenuLabels.index(label)
@@ -60,7 +60,7 @@ def OnPopUp(stc, event):
                     except:
                         pass
                 else:
-                    utils.Append_Menu(stc.PopUpMenu, stc.ID_POPUP_BASE+x, glob.PopupMenuList[x])
+                    utils.Append_Menu(stc.PopUpMenu, stc.ID_POPUP_BASE+x, EpyGlob.PopupMenuList[x])
                     stc.Bind(wx.EVT_MENU, stc.OnPopUpMenu, id=stc.ID_POPUP_BASE+x)
             except:
                 #Error with PopUpMenu Item
@@ -104,10 +104,10 @@ def OnPopUpMenu(stc, event):
 
 def SetUpPopUpActions(frame):
     actiondictionary = {
-    "Find":frame.OnMenuFind, 
-    "Find Next":frame.OnMenuFindNext, 
-    "Find Previous":frame.OnMenuFindPrevious,
-    "Replace":frame.OnMenuReplace,
+    "Find":frame.OnFind, 
+    "Find Next":frame.OnFindNext, 
+    "Find Previous":frame.OnFindPrevious,
+    "Replace":frame.OnReplace,
     "Indent":frame.OnIndentRegion, 
     "Dedent":frame.OnDedentRegion,
     "Toggle View Whitespace":frame.OnToggleViewWhiteSpace,

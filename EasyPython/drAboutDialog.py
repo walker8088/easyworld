@@ -4,7 +4,7 @@
 import sys, string
 import wx, wx.html, wx.lib.stattext
 
-import config, glob
+import config, EpyGlob
 import utils
 
 class drStaticLink(wx.Panel):
