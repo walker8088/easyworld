@@ -25,7 +25,7 @@
 import os.path
 import wx
 
-import config, glob
+import config, EpyGlob
 
 class drMenu(wx.Menu):
     def __init__(self, parent):
@@ -37,7 +37,7 @@ class drMenu(wx.Menu):
     def Append(self, id, label, LaunchesDialog = False, AmpersandAt = -1, AbsoluteLabel=''):
         ''' Appends the item, any applicable bitmap, and also any keyboard shortcut. '''
 
-        item = wx.MenuItem(self, id, glob.shortcutMgr.GetMenuLabel(label, LaunchesDialog, AmpersandAt, AbsoluteLabel))
+        item = wx.MenuItem(self, id, EpyGlob.shortcutMgr.GetMenuLabel(label, LaunchesDialog, AmpersandAt, AbsoluteLabel))
 
         bitmap = self.bitmapdirectory + label + '.png'
         if os.path.exists(bitmap):

@@ -10,7 +10,7 @@ import drEncoding
 
 import EventManager
 
-import config, glob
+import config, EpyGlob
 import utils
 
 class DocManager() :
@@ -68,11 +68,9 @@ class DocManager() :
         self.currDoc.OnModified(None)
         self.currDoc.SetFocus()
         if self.currDoc.filename:
-                glob.CurrDir = os.path.split(self.currDoc.filename)[0]
+                EpyGlob.CurrDir = os.path.split(self.currDoc.filename)[0]
  
         self.UpdateTitle()
-        
-        self.UpdateHighLightMenu()
         
         if lastDoc :
             self.currDoc.Finder.Copy(oldfinder)
@@ -84,14 +82,14 @@ class DocManager() :
 
         self.frame.UpdateSourceBrwser()
        
-        glob.EventMgr.PostSelectChangedEvent(self.currDoc, index)
+        EpyGlob.EventMgr.PostSelectChangedEvent(self.currDoc, index)
     
     def NewDoc(self) :
         last = self.GetLastDocNo()
         
         newDoc = DrText(self.frame)
         newDoc.untitlednumber = last
-        newDoc.filetype = glob.PYTHON_FILE
+        newDoc.filetype = EpyGlob.PYTHON_FILE
         #newDoc.filename = None
         newDoc.IsActive = False
         newDoc.SetupPrefsDocument(0)
@@ -100,18 +98,17 @@ class DocManager() :
         self.docs.append(newDoc)
         self.docbook.AddPage(newDoc, newDoc.GetFileNameTitle())
                 
-        glob.EventMgr.PostFileNewEvent(newDoc)
+        EpyGlob.EventMgr.PostFileNewEvent(newDoc)
         
         self.SelectDoc(len(self.docs)-1)
 
     def CloseDoc(self) :    
-    
         doc  = self.currDoc
-        glob.EventMgr.PostFileClosingEvent(doc)
+        #EpyGlob.EventMgr.PostFileClosingEvent(doc)
        
         self.docs.remove(doc)
         
-        glob.EventMgr.PostFileClosedEvent(doc)
+        EpyGlob.EventMgr.PostFileClosedEvent(doc)
         
         self.currDoc = None
         self.selection = -1
@@ -141,18 +138,21 @@ class DocManager() :
 
         self.OpenFile(filename)
         
-    def OpenFile(self, filename, oldDoc = None):
-    
-        encoding='utf-8'    
+    def OpenFile(self, filename, oldDoc = None):      
+        filename = os.path.abspath(filename).replace("\\", '/')
+
+        if type(filename) != unicode:
+            filename = filename.decode(wx.GetDefaultPyEncoding())
+        
+        if not os.path.isfile(filename) :
+            utils.ShowMessage(u"文件[%s]不存在!" % filename , "EasyPython Error")
+            return
         
         wx.BeginBusyCursor()
-        
-        filename = os.path.abspath(filename).replace("\\", '/')
-        
-        try:
-            if type(filename) != unicode:
-                filename = filename.decode(wx.GetDefaultPyEncoding())
-                
+   
+        encoding='utf-8'    
+         
+        try:     
             cfile = file(filename, 'rb')
         except:
             utils.ShowMessage("Error Opening: " + filename , "EasyPython Error")
@@ -162,11 +162,11 @@ class DocManager() :
         '''    
         if editrecentfiles:
             self.DestroyRecentFileMenu()
-            if glob.RecentFiles.count(filename) != 0:
-                glob.RecentFiles.remove(filename)
-            if len(glob.RecentFiles) == config.prefs.recentfileslimit:
-                glob.RecentFiles.pop()
-            glob.RecentFiles.insert(0, filename)
+            if EpyGlob.RecentFiles.count(filename) != 0:
+                EpyGlob.RecentFiles.remove(filename)
+            if len(EpyGlob.RecentFiles) == config.prefs.recentfileslimit:
+                EpyGlob.RecentFiles.pop()
+            EpyGlob.RecentFiles.insert(0, filename)
             self.WriteRecentFiles()
         '''
         
@@ -178,7 +178,7 @@ class DocManager() :
             newDoc.untitlednumber = -1
         
             self.docs.append(newDoc)
-            glob.EventMgr.PostFileLoadingEvent(newDoc)
+            EpyGlob.EventMgr.PostFileLoadingEvent(newDoc)
             self.docbook.AddPage(newDoc, newDoc.GetFileNameTitle())
             
         try:
@@ -196,19 +196,6 @@ class DocManager() :
                 return
             
             cfile.close()
-            
-            if utils.IsPythonFile(filename):
-                #Python
-                newDoc.filetype = glob.PYTHON_FILE
-                self.frame.HightLightMenu.Check(self.frame.ID_HIGHLIGHT_PYTHON, True)
-            elif utils.IsHtmlFile(filename):
-                #HTML
-                newDoc.filetype = glob.HTML_FILE
-                self.frame.HightLightMenu.Check(self.frame.ID_HIGHLIGHT_HTML, True)
-            else:
-                #Default
-                newDoc.filetype = glob.TEXT_FILE
-                self.frame.HightLightMenu.Check(self.frame.ID_HIGHLIGHT_PLAIN_TEXT, True)
             
             newDoc.EmptyUndoBuffer()
             newDoc.SetSavePoint()
@@ -250,7 +237,7 @@ class DocManager() :
         index = self.docs.index(newDoc)
         self.SelectDoc(index)
         
-        glob.EventMgr.PostFileLoadedEvent(newDoc)
+        EpyGlob.EventMgr.PostFileLoadedEvent(newDoc)
        
         wx.EndBusyCursor()
         
@@ -263,7 +250,7 @@ class DocManager() :
             oldname = doc.filename
             doc.filename = SaveAsName
             
-        glob.EventMgr.PostFileSavingEvent(doc)
+        EpyGlob.EventMgr.PostFileSavingEvent(doc)
         
         if os.path.exists(doc.filename) and (not os.access(doc.filename, os.W_OK)):
             utils.ShowMessage(u'写入文件: "%s" 时发生错误, 请检查文件权限问题。' % (doc.filename), u'保存错误')
@@ -274,18 +261,15 @@ class DocManager() :
             return False
             
         try:
-            if os.path.exists(doc.filename) :
-                try:
-                    shutil.copyfile(doc.filename, doc.filename + ".bak")
-                except:
-                    utils.ShowMessage((u"备份文件到: " + doc.filename + ".bak 发生错误"),  u'保存错误')
+            #if os.path.exists(doc.filename) :
+            #    try:
+            #        shutil.copyfile(doc.filename, doc.filename + ".bak")
+            #    except:
+            #        utils.ShowMessage((u"备份文件到: " + doc.filename + ".bak 发生错误"),  u'保存错误')
 
             encoding = doc.GetEncoding()
-
-            self.RemoveTrailingWhitespace()
-
+            doc.RemoveTrailingWhitespace()
             ctext = drEncoding.DecodeText(doc.GetText(), encoding)
-
             cfile = file(doc.filename, 'wb')
             cfile.write(ctext)
             cfile.close()
@@ -309,309 +293,13 @@ class DocManager() :
         
         doc.SetupPrefsDocument()
         
-        glob.CurrDir = os.path.dirname(doc.filename)
-        
-        self.UpdateHighLightMenu()
-        
-        glob.EventMgr.PostFileSavedEvent(doc)
+        EpyGlob.CurrDir = os.path.dirname(doc.filename)
+           
+        EpyGlob.EventMgr.PostFileSavedEvent(doc)
        
         return True
     
     #**********************************************************************************
-    def UpdateDocs(self) :    
-        for Document in self.docs:
-            if not Document.filename:
-                continue
-            if not os.path.exists(Document.filename): #bug 2010127 reported by by Luca Falavigna - dktrkranz, thanks
-                continue
-            current_mtime = int(os.stat(Document.filename).st_mtime)
-            if current_mtime != Document.mtime:
-                if utils.Ask(u'文件"%s"已经被修改了.要重新载入吗?' % (Document.filename), "Reload File?"):
-                    self.OpenFile(Document.filename, Document)
-                Document.mtime = current_mtime
-            
-    def UpdateHighLightMenu(self) :
-        if self.currDoc.filetype == glob.PYTHON_FILE:
-            self.frame.HightLightMenu.Check(self.frame.ID_HIGHLIGHT_PYTHON, True)
-        if self.currDoc.filetype == glob.HTML_FILE:
-            self.frame.HightLightMenu.Check(self.frame.ID_HIGHLIGHT_HTML, True)
-        if self.currDoc.filetype == glob.TEXT_FILE:
-            self.frame.HightLightMenu.Check(self.frame.ID_HIGHLIGHT_PLAIN_TEXT, True)
-    
-    def UpdateTitle(self) :
-        if self.currDoc :
-            self.frame.SetTitle("EasyPython - " + self.currDoc.GetFileNameTitleFull())
-            self.docbook.SetPageText(self.selection, self.currDoc.GetFileNameTitle())
-        else :
-            self.frame.SetTitle("EasyPython")
-            
-    #**********************************************************************************
-    def RemoveTrailingWhitespace(self):
-        if not config.prefs.docremovetrailingwhitespace[self.currDoc.filetype]:
-                return
-                
-        eol = self.currDoc.GetEndOfLineCharacter()
-        lines = self.currDoc.GetText().split(eol)
-        new_lines = []
-        nr_lines = 0
-        nr_clines = 0
-        regex = re.compile('\s+' + eol, re.MULTILINE)
-
-        for line in lines:
-            nr_lines += 1
-            result = regex.search(line + eol)
-            if result is not None:
-                end = result.start()
-                nr_clines += 1
-                new_lines.append (line [:end])
-            else:
-                new_lines.append(line)
-
-        changed = False
-        if nr_clines > 0:
-                changed = True
-                newtext = string.join(new_lines, eol)
-                #save current line
-                curline = self.currDoc.GetCurrentLine()
-                self.currDoc.SetText(newtext)
-                #jump to saved current line
-                self.currDoc.GotoLine(curline)
-                self.frame.SetStatusText("Removed trailing whitespaces", 2)
-        if not changed:
-            self.frame.SetStatusText("", 2)
-
-    def FormatMode(self, mode) :    
-        wx.BeginBusyCursor()
-        wx.Yield()
-        if mode == "Mac" :
-            self.currDoc.SetEOLMode(wx.stc.STC_EOL_CR)
-            text = self.currDoc.GetText()
-            text = glob.FormatMacReTarget.sub('\r', text)
-            self.currDoc.SetText(text)
-            self.currDoc.OnModified(None)
-        elif mode == "Unix" :
-            self.currDoc.SetEOLMode(wx.stc.STC_EOL_LF)
-            text = self.currDoc.GetText()
-            text = glob.FormatUnixReTarget.sub('\n', text)
-            self.currDoc.SetText(text)
-        elif mode == 'Win' :            
-            self.currDoc.SetEOLMode(wx.stc.STC_EOL_CRLF)
-            text = self.currDoc.GetText()
-            text = glob.FormatWinReTarget.sub('\r\n', text)
-            self.currDoc.SetText(text)
-            
-        self.currDoc.OnModified(None)
-        wx.EndBusyCursor()
-    
-    def IndentRegion(self) :    
-        #Submitted Patch:  Franz Steinhausler
-        #Submitted Patch (ModEvent Mask), Franz Steinhausler
-        beg, end = self.currDoc.GetSelection()
-        begline = self.currDoc.LineFromPosition(beg)
-        endline = self.currDoc.LineFromPosition(end)
-
-        mask = self.currDoc.GetModEventMask()
-        self.currDoc.SetModEventMask(0)
-
-        if begline == endline:
-            #This section modified by Dan
-            pos = self.currDoc.PositionFromLine(begline)
-            self.currDoc.SetSelection(pos, pos)
-            self.currDoc.GotoPos(pos)
-            self.currDoc.Tab()
-            self.currDoc.SetSelection(pos, self.currDoc.GetLineEndPosition(begline))
-            self.currDoc.SetModEventMask(mask)
-            return
-
-        #Submitted Patch:  Christian Daven
-        self.currDoc.Tab()
-        self.currDoc.SetModEventMask(mask)
-        
-    def DedentRegion(self) :    
-        #Submitted Patch:  Franz Steinhausler
-        #Submitted Patch (ModEvent Mask), Franz Steinhausler
-        beg, end = self.currDoc.GetSelection()
-        begline = self.currDoc.LineFromPosition(beg)
-        endline = self.currDoc.LineFromPosition(end)
-
-        mask = self.currDoc.GetModEventMask()
-        self.currDoc.SetModEventMask(0)
-
-        if begline == endline:
-            #This section modified by Dan
-            pos = self.currDoc.PositionFromLine(begline)
-            self.currDoc.SetSelection(pos, pos)
-            self.currDoc.GotoPos(pos)
-            self.currDoc.BackTab()
-            self.currDoc.SetSelection(pos, self.currDoc.GetLineEndPosition(begline))
-            self.currDoc.SetModEventMask(mask)
-            return
-
-        #Submitted Patch:  Christian Daven
-        self.currDoc.BackTab()
-        self.currDoc.SetModEventMask(mask)
-
-    def CenterCurrentLine(self, linenr):
-        self.currDoc.EnsureVisible(linenr)
-        #patch: [ 1366679 ] Goto Line Should Not Display At Top Of Window
-        #self.currDoc.ScrollToLine(v)h
-        top = linenr - self.currDoc.LinesOnScreen()/2
-        if top < 0:
-            top = 0
-        self.currDoc.ScrollToLine(top)
-        #self.currDoc.GotoLine(linenr)
-        
-    def CheckSyntax(self, docNumber=-1):
-        if docNumber == -1:
-            docNumber = self.selection
-        fn = self.docs[docNumber].GetFileName()
-        if not self.docs[docNumber].filename:
-            return False
-        
-        encoding = self.docs[docNumber].GetEncoding()
-        ctext = drEncoding.DecodeText(self.docs[docNumber].GetText(), encoding)
-        ctext = ctext.replace('\r\n', '\n').replace('\r', '\n')
-        #Check Syntax First    
-        try:
-            compile(ctext, fn, 'exec')
-        except Exception, e:
-            excstr = str(e)
-            result = self.RecheckSyntax.search(excstr)
-            if result is not None:
-                num = result.group()[5:].strip()
-                try:
-                    n = int(num) - 1
-                    self.SelectDoc(docNumber)
-                    self.currDoc.ScrollToLine(n)
-                    self.currDoc.GotoLine(n)
-                    utils.ShowMessage(u'在第 %s 行处语法检查出错:\n' %num)
-                    self.currDoc.SetSTCFocus(True)
-                    self.currDoc.SetFocus()
-                    #Stop the function here if something is found.
-                    return False
-                except:
-                    utils.ShowMessage(u'语法检查出错:\n\n'+excstr, u'语法错误(Syntax Error)')
-            else:
-                utils.ShowMessage('语法检查出错:\n\n' + excstr, u'语法错误(Syntax Error)')
-
-        #Now Check Indentation
-        result = drTabNanny.Check(fn)
-        results = result.split()
-        if len(results) > 1:
-            num = results[1]
-            try:
-                n = int(num) - 1
-                self.SelectDoc(docNumber)
-                self.currDoc.ScrollToLine(n)
-                self.currDoc.GotoLine(n)
-                utils.ShowMessage('tabnanny:\n' + result)
-                self.currDoc.SetSTCFocus(True)
-                self.currDoc.SetFocus()
-                return False
-            except:
-                utils.ShowMessage('Line Number Error:\n\n'+result, 'TabNanny Trouble')
-
-        return True
-    
-    def CommentRegion(self) :    
-        selstart, selend = self.currDoc.GetSelection()
-        #From the start of the first line selected
-        oldcursorpos = self.currDoc.GetCurrentPos()
-        startline = self.currDoc.LineFromPosition(selstart)
-        self.currDoc.GotoLine(startline)
-        start = self.currDoc.GetCurrentPos()
-        #To the end of the last line selected
-        #Bugfix Chris Wilson
-        #Edited by Dan (selend fix)
-        if selend == selstart:
-            tend = selend
-        else:
-            tend = selend - 1
-        docstring = config.prefs.doccommentstring[self.currDoc.filetype]
-        if os.path.splitext(self.currDoc.filename)[1] == ".lua":
-            docstring = "--"
-
-        end = self.currDoc.GetLineEndPosition(self.currDoc.LineFromPosition(tend))
-        #End Bugfix Chris Wilson
-        eol = self.currDoc.GetEndOfLineCharacter()
-        corr = 0
-        l = len(self.currDoc.GetText())
-        if config.prefs.doccommentmode == 0:
-            self.currDoc.SetSelection(start, end)
-            text = docstring + self.currDoc.GetSelectedText()
-            text = text.replace(eol, eol + docstring)
-            self.currDoc.ReplaceSelection(text)
-        else:
-            mask = self.currDoc.GetModEventMask()
-            self.currDoc.SetModEventMask(0)
-            wpos = start
-            while wpos < end:
-                ws = self.currDoc.GetLineIndentPosition(startline)
-                le = self.currDoc.GetLineEndPosition(startline)
-                if ws != le:
-                    self.currDoc.InsertText(ws, docstring)
-                startline += 1
-                wpos = self.currDoc.PositionFromLine(startline)
-            self.currDoc.SetModEventMask(mask)
-        corr = len(self.currDoc.GetText()) - l
-        self.currDoc.GotoPos(oldcursorpos + corr)
-
-    def UnCommentRegion(self) :
-        #franz: pos is not used
-        selstart, selend = self.currDoc.GetSelection()
-        #From the start of the first line selected
-        startline = self.currDoc.LineFromPosition(selstart)
-        oldcursorpos = self.currDoc.GetCurrentPos()
-        self.currDoc.GotoLine(startline)
-        start = self.currDoc.GetCurrentPos()
-        #To the end of the last line selected
-        #Bugfix Chris Wilson
-        #Edited by Dan (selend fix)
-        if selend == selstart:
-            tend = selend
-        else:
-            tend = selend - 1
-        end = self.currDoc.GetLineEndPosition(self.currDoc.LineFromPosition(tend))
-        #End Bugfix Chris Wilson
-
-        mask = self.currDoc.GetModEventMask()
-        self.currDoc.SetModEventMask(0)
-        lpos = start
-        newtext = ""
-        l = len(self.currDoc.GetText())
-
-        docstring = config.prefs.doccommentstring[self.currDoc.filetype]
-        if os.path.splitext(self.currDoc.filename)[1] == ".lua":
-            docstring = "--"
-
-        ldocstring = len(docstring)
-        while lpos < end:
-            lpos = self.currDoc.PositionFromLine(startline)
-            line = self.currDoc.GetLine(startline)
-            lc = line.find(docstring)
-            if lc > -1:
-                prestyle = self.currDoc.GetStyleAt(lpos + lc - 1)
-                style = self.currDoc.GetStyleAt(lpos + lc)
-                if self.currDoc.filetype == 1 or os.path.splitext(self.currDoc.filename)[1] == ".lua":
-                    if 0:
-                        newtext += line
-                    else:
-                        newtext += line[0:lc] + line[lc+ldocstring:]
-                else:
-                    if not ((not (prestyle == wx.stc.STC_P_COMMENTLINE) and not (prestyle == wx.stc.STC_P_COMMENTBLOCK))\
-                    and ((style == wx.stc.STC_P_COMMENTLINE) or (style == wx.stc.STC_P_COMMENTBLOCK))):
-                        newtext += line
-                    else:
-                        newtext += line[0:lc] + line[lc+ldocstring:]
-            else:
-                newtext += line
-            startline += 1
-            lpos = self.currDoc.PositionFromLine(startline)
-        self.currDoc.SetModEventMask(mask)
-        self.currDoc.SetSelection(start, end)
-        self.currDoc.ReplaceSelection(newtext.rstrip(self.currDoc.GetEndOfLineCharacter()))
-        corr = len(self.currDoc.GetText()) - l
-        self.currDoc.GotoPos(oldcursorpos + corr)
     
     def CheckIndentation(self, doc, oof) :   
         #Indentation
@@ -700,13 +388,28 @@ class DocManager() :
             emode = wx.stc.STC_EOL_LF
             
         doc.SetEOLMode(emode)
-    
+            
+    def UpdateDocs(self) :    
+        for doc in self.docs:
+            if not doc.filename:
+                continue
+            if not os.path.exists(doc.filename): 
+                #TODO：文件删除处理
+                continue
+            current_mtime = int(os.stat(doc.filename).st_mtime)
+            if current_mtime != doc.mtime:
+                if utils.Ask(u'文件"%s"已经被修改了.要重新载入吗?' % (doc.filename), "Reload File?"):
+                    self.OpenFile(doc.filename, doc)
+                doc.mtime = current_mtime
+                
+    def UpdateTitle(self) :
+        if self.currDoc :
+            self.frame.SetTitle("EasyPython - " + self.currDoc.GetFileNameTitleFull())
+            self.docbook.SetPageText(self.selection, self.currDoc.GetFileNameTitle())
+        else :
+            self.frame.SetTitle("EasyPython")
+            
     #**********************************************************************************
-    
-    def GetFileName(self):
-        if not self.currDoc :
-            return None
-        return self.currDoc.filename
             
     def GetLastDocNo(self) :            
         docCount = len(self.docs)

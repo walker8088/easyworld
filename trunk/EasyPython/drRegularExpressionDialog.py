@@ -302,9 +302,9 @@ class drRegularExpressionDialog(wx.Frame):
                     self.parent.txtPrompt.InsertText(pos, result)
                     self.parent.txtPrompt.GotoPos(pos + l)
                 else:
-                    pos = glob.docMgr.currDoc.GetCurrentPos()
-                    glob.docMgr.currDoc.InsertText(pos, result)
-                    glob.docMgr.currDoc.GotoPos(pos + l)
+                    pos = EpyGlob.docMgr.currDoc.GetCurrentPos()
+                    EpyGlob.docMgr.currDoc.InsertText(pos, result)
+                    EpyGlob.docMgr.currDoc.GotoPos(pos + l)
             else:
                 self.parent.txtSearchFor.SetValue(result)
 

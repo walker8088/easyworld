@@ -27,7 +27,7 @@ import wx
 import drScrolledMessageDialog
 import drShortcutsFile
 
-import config, glob
+import config, EpyGlob
 import utils
 
 def GetPopUpMenuLabels(filename, frame):

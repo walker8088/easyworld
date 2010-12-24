@@ -3,7 +3,7 @@ import os
 import sys
 import re
 import wx
-import config, glob
+import config, EpyGlob
 
 def GetFileExt(index):
         thelist = config.prefs.extensions[index].split(',')
@@ -18,8 +18,8 @@ global refiletypeispy,refiletypeishtml,refiletypeistxt
 def Init() :
     global refiletypeispy,refiletypeishtml,refiletypeistxt
     refiletypeispy = re.compile(GetFileExt(0), re.IGNORECASE)
-    refiletypeishtml = re.compile(GetFileExt(2), re.IGNORECASE)
-    refiletypeistxt = re.compile(GetFileExt(3), re.IGNORECASE)
+    refiletypeishtml = re.compile(GetFileExt(1), re.IGNORECASE)
+    refiletypeistxt = re.compile(GetFileExt(2), re.IGNORECASE)
         
 def IsHtmlFile(filename):
         return refiletypeishtml.search(filename) is not None

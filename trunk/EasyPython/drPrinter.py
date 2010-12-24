@@ -25,7 +25,7 @@
 
 import wx.html
 
-import config, glob
+import config, EpyGlob
 
 class DrPrinter(wx.html.HtmlEasyPrinting):
 

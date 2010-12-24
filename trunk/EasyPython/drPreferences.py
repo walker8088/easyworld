@@ -48,7 +48,8 @@ def GetPreferencesDictionary():
     #Each item in the Array:
     #(Preference, Preferences File String, Function)
     #Function: 0: (GetPref, Not an Integer,), 1: (GetPref, Integer), 2: (ExtractPref, Not an Integer).
-    return {'General': [('rememberwindowsizeandposition', 'remember.window.size.and.position', 1),
+    return {'General': [
+('rememberwindowsizeandposition', 'remember.window.size.and.position', 1),
 ('rememberdialogsizesandpositions', 'remember.dialog.sizes.and.positions', 1),
 ('rememberpanelsizes', 'remember.panel.sizes', 1),
 ('autodetectencoding', 'auto.detect.encoding', 1),
@@ -68,41 +69,32 @@ def GetPreferencesDictionary():
 ('alwayspromptonexit', 'always.prompt.on.exit', 1),
 ('backupfileonsave', 'backup.file.on.save', 1)],
 'File Types': [('extensions[0]', 'filetypes.extensions.python', 0),
-('extensions[1]', 'filetypes.extensions.cpp', 0),
-('extensions[2]', 'filetypes.extensions.html', 0),
-('extensions[3]', 'filetypes.extensions.text', 0),
+('extensions[1]', 'filetypes.extensions.html', 0),
+('extensions[2]', 'filetypes.extensions.text', 0),
 ('docfolding[0]', 'filetypes.docfolding.python', 1),
-('docfolding[1]', 'filetypes.docfolding.cpp', 1),
-('docfolding[2]', 'filetypes.docfolding.html', 1),
-('docfolding[3]', 'filetypes.docfolding.text', 1),
+('docfolding[1]', 'filetypes.docfolding.html', 1),
+('docfolding[2]', 'filetypes.docfolding.text', 1),
 ('doctabwidth[0]', 'filetypes.doctabwidth.python', 1),
-('doctabwidth[1]', 'filetypes.doctabwidth.cpp', 1),
-('doctabwidth[2]', 'filetypes.doctabwidth.html', 1),
-('doctabwidth[3]', 'filetypes.doctabwidth.text', 1),
+('doctabwidth[1]', 'filetypes.doctabwidth.html', 1),
+('doctabwidth[2]', 'filetypes.doctabwidth.text', 1),
 ('docusetabs[0]', 'filetypes.docusetabs.python', 1),
-('docusetabs[1]', 'filetypes.docusetabs.cpp', 1),
-('docusetabs[2]', 'filetypes.docusetabs.html', 1),
-('docusetabs[3]', 'filetypes.docusetabs.text', 1),
+('docusetabs[1]', 'filetypes.docusetabs.html', 1),
+('docusetabs[2]', 'filetypes.docusetabs.text', 1),
 ('docuseintellibackspace[0]', 'filetypes.docuseintellibackspace.python', 1),
-('docuseintellibackspace[1]', 'filetypes.docuseintellibackspace.cpp', 1),
-('docuseintellibackspace[2]', 'filetypes.docuseintellibackspace.html', 1),
-('docuseintellibackspace[3]', 'filetypes.docuseintellibackspace.text', 1),
+('docuseintellibackspace[1]', 'filetypes.docuseintellibackspace.html', 1),
+('docuseintellibackspace[2]', 'filetypes.docuseintellibackspace.text', 1),
 ('docremovetrailingwhitespace[0]', 'filetypes.docremovetrailingwhitespace.python', 1),
-('docremovetrailingwhitespace[1]', 'filetypes.docremovetrailingwhitespace.cpp', 1),
-('docremovetrailingwhitespace[2]', 'filetypes.docremovetrailingwhitespace.html', 1),
-('docremovetrailingwhitespace[3]', 'filetypes.docremovetrailingwhitespace.text', 1),
+('docremovetrailingwhitespace[1]', 'filetypes.docremovetrailingwhitespace.html', 1),
+('docremovetrailingwhitespace[2]', 'filetypes.docremovetrailingwhitespace.text', 1),
 ('doceolmode[0]', 'filetypes.doceolmode.python', 1),
-('doceolmode[1]', 'filetypes.doceolmode.cpp', 1),
-('doceolmode[2]', 'filetypes.doceolmode.html', 1),
-('doceolmode[3]', 'filetypes.doceolmode.text', 1),
+('doceolmode[1]', 'filetypes.doceolmode.html', 1),
+('doceolmode[2]', 'filetypes.doceolmode.text', 1),
 ('doccommentstring[0]', 'filetypes.doccommentstring.python', 0),
-('doccommentstring[1]', 'filetypes.doccommentstring.cpp', 0),
-('doccommentstring[2]', 'filetypes.doccommentstring.html', 0),
-('doccommentstring[3]', 'filetypes.doccommentstring.text', 0),
+('doccommentstring[1]', 'filetypes.doccommentstring.html', 0),
+('doccommentstring[2]', 'filetypes.doccommentstring.text', 0),
 ('docwordwrap[0]', 'filetypes.docwordwrap.python', 1),
-('docwordwrap[1]', 'filetypes.docwordwrap.cpp', 1),
-('docwordwrap[2]', 'filetypes.docwordwrap.html', 1),
-('docwordwrap[3]', 'filetypes.docwordwrap.text', 1)],
+('docwordwrap[1]', 'filetypes.docwordwrap.html', 1),
+('docwordwrap[2]', 'filetypes.docwordwrap.text', 1)],
 'File Dialog': [('constantwildcard', 'constant.wildcard', 0),
 ('wildcard', 'wildcard', 0),
 ('windowsshortcutreplacetable', 'windows.shortcut.replace.table', 0),
@@ -223,33 +215,41 @@ def GetPreferencesDictionary():
 ('sourcebrowserstyle', 'sourcebrowser.style', 0)],
 'Printing': [('printdoclinenumbers', 'print.doc.linenumbers', 1),
 ('printpromptlinenumbers', 'print.prompt.linenumbers', 1),
-('printtabwidth', 'print.tab.width', 1)],
+('printtabwidth', 'print.tab.width', 1)
+],
 }
 
 class drPreferences:
 
     def __init__(self, platform_is_windows, AppDir = ""):
+        
         self.platform_is_windows = platform_is_windows
         self.AppDir = AppDir
+        
         #General Settings
         self.rememberwindowsizeandposition = 1
         self.rememberdialogsizesandpositions = 1
         self.rememberpanelsizes = 1
         self.autodetectencoding = 1
+        
         self.defaultencoding = 'utf-8'
+
         self.saveonrun = 1
         self.checksyntaxextensions = ''
         self.promptonsaveall = 1
         self.doubleclicktoclosetab = 0
         self.iconsize = 16
-        self.recentfileslimit = 10
+        self.recentfileslimit = 20
         self.checkindentation = 0
         self.vieweol = 1
         self.checkeol = 1
+        
         self.pythonargs = ""
         self.defaultdirectory = AppDir
         self.enablefeedback = 1
+        
         wx.GetApp().debugmodus = self.debugmodus = 1
+        
         self.alwayspromptonexit = 0
         self.backupfileonsave = 1
         self.save = 0
@@ -261,17 +261,14 @@ class drPreferences:
         #self.windowsshortcutreplacetable = 'C:,/mnt/win_c#'
         #@ = replace with lowercase match & = replace with exact match
         self.windowsshortcutreplacetable = '[A-Z],/mnt/win_@#'
-        if self.platform_is_windows:
-            self.wildcard = "Python Source (*.pyw *.py)|*.pyw;*.py|C/C++ Source (*.c *.cc *.cpp *.cxx *.h *.hh *.hpp *.hxx)|*.c;*.cc;*.cpp;*.cxx;*.h;*.hh;*.hpp;*.hxx|HTML Files (*.htm *.html *.shtm *.shtml *.xml)|*.htm;*.html;*.shtm;*.shtml;*.xml|Backup Files (*.bak)|*.bak|Plain Text (*.txt *.dat *.log)|*.txt;*.dat;*.log|All Files (*)|*"
-        else:
-            self.wildcard = "Python Source (*.py *.pyw)|*.py;*.pyw|C/C++ Source (*.c *.cc *.cpp *.cxx *.h *.hh *.hpp *.hxx)|*.c;*.cc;*.cpp;*.cxx;*.h;*.hh;*.hpp;*.hxx|HTML Files (*.htm *.html *.shtm *.shtml *.xml)|*.htm;*.html;*.shtm;*.shtml;*.xml|Backup Files (*.bak)|*.bak|Plain Text (*.txt *.dat *.log)|*.txt;*.dat;*.log|All Files (*)|*"
-
+        self.wildcard = "Python Source (*.pyw *.py)|*.pyw;*.py|HTML Files (*.htm *.html *.shtm *.shtml *.xml)|*.htm;*.html;*.shtm;*.shtml;*.xml|Plain Text (*.txt *.dat *.log)|*.txt;*.dat;*.log|All Files (*)|*"
+        
         #Drag and Drop
         self.draganddropmode = 2
         self.draganddroptextmode = 0
 
         #File Types
-        self.extensions = {0: 'py,pyw', 1: 'c,cc,cpp,cxx,h,hh,hpp,hxx', 2: 'htm,shtm,html,shtml,xml', 3: 'txt,dat,log'}
+        self.extensions = {0: 'py,pyw', 1: 'htm,shtm,html,shtml,xml', 2: 'txt,dat,log'}
         self.docfolding = {0: 1, 1: 0, 2: 0, 3: 0}
         self.doctabwidth = {0: 4, 1: 4, 2: 4, 3: 4}
         self.docusetabs = {0: 0, 1: 0, 2: 0, 3: 0}
@@ -435,7 +432,7 @@ class drPreferences:
         self.findreplaceinselection = 0
         self.findreplacefromcursor = 1
         self.findreplacepromptonreplace = 1
-        self.findreplaceautowrap = 0
+        self.findreplaceautowrap = 1
         self.findreplaceundercursor = 1
 
         #Source Browser Settings

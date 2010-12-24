@@ -2,7 +2,7 @@
 import logging
 import wx
 
-import glob
+import EpyGlob
 
 # ############################################################                
 class ActionItem :
@@ -46,7 +46,7 @@ class ActionItem :
                 
                 
         def AppendToToolBar(self, toolbar, handler = None, tmp = False, is_check = False) :
-                toolbar.AddLabelTool(self.id, self.show, glob.getBitmap(self.name))
+                toolbar.AddLabelTool(self.id, self.show, EpyGlob.getBitmap(self.name))
                 
                 toolbar.EnableTool(self.id, self.enabled)
                 
@@ -62,7 +62,7 @@ class ActionItem :
                         self.parent.Bind(wx.EVT_TOOL, self.func, id = self.id)
                 
         def AppendToAuiToolBar(self, toolbar, handler = None, tmp = False, is_check = False) :
-                toolbar.AddSimpleTool(self.id, self.show, glob.getBitmap(self.name))
+                toolbar.AddSimpleTool(self.id, self.show, EpyGlob.getBitmap(self.name))
                 toolbar.EnableTool(self.id, self.enabled)
                 
                 if not tmp :
@@ -93,7 +93,7 @@ class CheckActionItem(ActionItem) :
                 self.checked = checked
         
         def AppendToToolBar(self, toolbar, handler = None, tmp = False) :
-                toolbar.AddCheckLabelTool(self.id, self.show, glob.getBitmap(self.name))
+                toolbar.AddCheckLabelTool(self.id, self.show, EpyGlob.getBitmap(self.name))
                 toolbar.EnableTool(self.id, self.enabled)
                 toolbar.ToggleTool(self.id, self.checked) 
                 

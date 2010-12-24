@@ -3,11 +3,11 @@ import wx
 import drPrefsFile
 from drPreferences import drPreferences
 
-import glob, utils
+import EpyGlob, utils
 
 global app
-global prefs, prefsfile, AppDataDir, AppDir,BitmapDir
-global BitmapDir, AppDataDir, AppDataDir 
+global prefs, prefsfile
+global BitmapDir, AppDir, AppDataDir 
 global PLATFORM_IS_WIN, PLATFORM_IS_GTK, PLATFORM_IS_MAC
 global pythexec, pythexecw
 
@@ -53,21 +53,21 @@ def Init() :
         utils.Init()
         
         if prefs.defaultdirectory:
-            glob.CurrDir = prefs.defaultdirectory
+            EpyGlob.CurrDir = prefs.defaultdirectory
         else:
             #add limodou 2004/04/17
             #if defaultdirectory is empty, then use the last recently file's dir
-            if glob.recentfiles:
-                glob.CurrDir = os.path.dirname(glob.recentfiles[0])
+            if EpyGlob.recentfiles:
+                EpyGlob.CurrDir = os.path.dirname(EpyGlob.recentfiles[0])
             #end limodou
             else:
-                glob.CurrDir = AppDir
+                EpyGlob.CurrDir = AppDir
 
         try:
-            os.chdir(glob.CurrDir)
+            os.chdir(EpyGlob.CurrDir)
         except:
-            glob.CurrDir = AppDir
-            os.chdir(glob.CurrDir)
+            EpyGlob.CurrDir = AppDir
+            os.chdir(EpyGlob.CurrDir)
 
     
 #*******************************************************************************************************

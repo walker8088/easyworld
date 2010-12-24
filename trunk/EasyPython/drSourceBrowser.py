@@ -33,7 +33,7 @@ import re
 import drScrolledMessageDialog
 from drProperty import *
 
-import config, glob
+import config, EpyGlob
 import EventManager
 
 recolour = re.compile('#\w+')
@@ -139,14 +139,14 @@ class drTree(wx.TreeCtrl):
             i = self.parent.ItemsIndex.index(sel)
             pos = self.parent.ItemsPos[i]
             
-            line = glob.docMgr.currDoc.LineFromPosition(pos)
+            line = EpyGlob.docMgr.currDoc.LineFromPosition(pos)
             
             if config.prefs.docfolding:
-                glob.docMgr.currDoc.EnsureVisible(line)
+                EpyGlob.docMgr.currDoc.EnsureVisible(line)
 
-            glob.docMgr.currDoc.ScrollToLine(line)
-            glob.docMgr.currDoc.GotoLine(line)
-            glob.docMgr.currDoc.GotoPos(pos)
+            EpyGlob.docMgr.currDoc.ScrollToLine(line)
+            EpyGlob.docMgr.currDoc.GotoLine(line)
+            EpyGlob.docMgr.currDoc.GotoPos(pos)
             
             #self.grandparent.Raise()
             #self.grandparent.SetFocus()
@@ -154,7 +154,7 @@ class drTree(wx.TreeCtrl):
             if config.prefs.sourcebrowsercloseonactivate:
                 self.parent.OnBtnClose(event)
             else:
-                glob.docMgr.currDoc.SetFocus()
+                EpyGlob.docMgr.currDoc.SetFocus()
         except:
             drScrolledMessageDialog.ShowMessage(self.parent, 'Error Activating Item', 'Source Browser Error')
 
@@ -191,8 +191,8 @@ class drSourceBrowserPanel(wx.Panel):
         #self.Bind(wx.EVT_BUTTON, self.OnBtnClose, id=101)
         self.Bind(wx.EVT_BUTTON, self.OnRefresh, id=102)
         
-        glob.EventMgr.Bind(EventManager.EVT_SELECT_CHANGED, self.OnRefresh, None)
-        glob.EventMgr.Bind(EventManager.EVT_FILE_CLOSED, self.OnFileClosed, None)
+        EpyGlob.EventMgr.Bind(EventManager.EVT_SELECT_CHANGED, self.OnRefresh, None)
+        EpyGlob.EventMgr.Bind(EventManager.EVT_FILE_CLOSED, self.OnFileClosed, None)
         
         #self.edSearch.Bind(wx.EVT_KEY_UP, self.OnEdSearch)
         #self.edSearch.SetToolTipString("Search in the class-tree")
@@ -213,7 +213,7 @@ class drSourceBrowserPanel(wx.Panel):
         pass
         
     def Browse(self):
-        self.Index = glob.docMgr.selection
+        self.Index = EpyGlob.docMgr.selection
         
         if self.Index < 0 :
             self.classtree.DeleteAllItems()
@@ -231,8 +231,8 @@ class drSourceBrowserPanel(wx.Panel):
 
         self.ItemsPos = []
 
-        self.eol = glob.docMgr.currDoc.GetEndOfLineCharacter()
-        self.targetText = glob.docMgr.currDoc.GetText()
+        self.eol = EpyGlob.docMgr.currDoc.GetEndOfLineCharacter()
+        self.targetText = EpyGlob.docMgr.currDoc.GetText()
         
         #if self.mixed:
         #    return 
@@ -244,11 +244,11 @@ class drSourceBrowserPanel(wx.Panel):
         currentIndent = 0
 
         #What is this document using?
-        result = glob.docMgr.currDoc.CheckIndentation()
+        result = EpyGlob.docMgr.currDoc.CheckIndentation()
         wasnotmixed = 1
         if result == 0:
             wasnotmixed = 0
-            if config.prefs.docusetabs[glob.docMgr.currDoc.filetype]:
+            if config.prefs.docusetabs[EpyGlob.docMgr.currDoc.filetype]:
                 result = 1
             else:
                 result = -1

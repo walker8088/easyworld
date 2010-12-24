@@ -27,7 +27,7 @@ import wx.stc
 import drScrolledMessageDialog
 import re
 
-import config, glob
+import config, EpyGlob
 import utils
 
 class drFinder:
@@ -324,16 +324,16 @@ class drFinder:
             #drScrolledMessageDialog.ShowMessage(self.parent, 'Find Previous Not Possible:\nRegular Expressions Are On.', 'DrPython Find')
 
     def ScrollFewLinesAbove(self):
-        top = glob.docMgr.currDoc.GetCurrentLine() - (glob.docMgr.currDoc.LinesOnScreen() - 5)
-        lastline = glob.docMgr.currDoc.GetFirstVisibleLine() + glob.docMgr.currDoc.LinesOnScreen()
-        if glob.docMgr.currDoc.GetCurrentLine() > (lastline - 5):
-            glob.docMgr.currDoc.ScrollToLine(top)
+        top = EpyGlob.docMgr.currDoc.GetCurrentLine() - (EpyGlob.docMgr.currDoc.LinesOnScreen() - 5)
+        lastline = EpyGlob.docMgr.currDoc.GetFirstVisibleLine() + EpyGlob.docMgr.currDoc.LinesOnScreen()
+        if EpyGlob.docMgr.currDoc.GetCurrentLine() > (lastline - 5):
+            EpyGlob.docMgr.currDoc.ScrollToLine(top)
 
     def ScrollFewLinesBelow(self):
-        top = glob.docMgr.currDoc.GetCurrentLine() - 5
-        firstline = glob.docMgr.currDoc.GetFirstVisibleLine()
-        if glob.docMgr.currDoc.GetCurrentLine() < (firstline + 5):
-            glob.docMgr.currDoc.ScrollToLine(top)
+        top = EpyGlob.docMgr.currDoc.GetCurrentLine() - 5
+        firstline = EpyGlob.docMgr.currDoc.GetFirstVisibleLine()
+        if EpyGlob.docMgr.currDoc.GetCurrentLine() < (firstline + 5):
+            EpyGlob.docMgr.currDoc.ScrollToLine(top)
 
     def DoRectangleFind(self, findtext, matchcase, backwards=False):
         self.RE = 0
@@ -1000,13 +1000,14 @@ class drFindReplaceDialog(wx.Dialog):
         self.theSizer.Add(self.txtSearchFor, 1, wx.SHAPED)
         self.theSizer.Add(self.btnPopUpSearchFor, 1, wx.SHAPED)
 
-        self.txtSearchFor.SetHistory(glob.FindHistory)
+        self.txtSearchFor.SetHistory(EpyGlob.FindHistory)
 
         if IsReplace:
             #self.SetSize((400, 345))
             self.txtReplaceWith = drFindTextCtrl(self, -1, "", wx.DefaultPosition, (250, -1))
             self.btnPopUpReplaceWith = wx.Button(self, self.ID_BTNRW, " Menu ")
-            self.txtReplaceWith.SetHistory(parent.ReplaceHistory)
+            
+            #self.txtReplaceWith.SetHistory(parent.ReplaceHistory)
 
         self.chkRegularExpression = wx.CheckBox(self, self.ID_CHK_REGEX, "RegularExpression")
         self.btnCreateRE = wx.Button(self, self.ID_CREATERE, " &Create ")
@@ -1025,7 +1026,7 @@ class drFindReplaceDialog(wx.Dialog):
         self.chkInSelection.SetValue(config.prefs.findreplaceinselection)
         self.chkFromCursor.SetValue(config.prefs.findreplacefromcursor)
 
-        self.chkInSelection.Enable(len(parent.currDoc.GetSelectedText()) > 0)
+        self.chkInSelection.Enable(len(EpyGlob.docMgr.currDoc.GetSelectedText()) > 0)
 
         if IsReplace:
             self.chkPromptOnReplace  = wx.CheckBox(self, -1, "Prompt on Replace")
@@ -1129,9 +1130,9 @@ class drFindReplaceDialog(wx.Dialog):
         isRegularExpression = self.chkRegularExpression.GetValue()
         isMatchCase = self.chkMatchCase.GetValue()
 
-        self.txtSearchFor.AppendToHistory(glob.FindHistory)
+        self.txtSearchFor.AppendToHistory(EpyGlob.FindHistory)
         if self.IsReplace:
-            self.txtReplaceWith.AppendToHistory(glob.ReplaceHistory)
+            self.txtReplaceWith.AppendToHistory(EpyGlob.ReplaceHistory)
 
         #Set Target Range
         if self.chkInSelection.GetValue():
@@ -1217,17 +1218,17 @@ class drFindReplaceDialog(wx.Dialog):
         self.Close(1)
 
         if self.IsReplace:
-            glob.ReplaceOptions = self.GetOptions()
+            EpyGlob.ReplaceOptions = self.GetOptions()
         else:
-            glob.FindOptions = self.GetOptions()
+            EpyGlob.FindOptions = self.GetOptions()
         if findbackwards:
             self.stc.Finder.ScrollFewLinesBelow()
         else:
             self.stc.Finder.ScrollFewLinesAbove()
-#        top = glob.docMgr.currDoc.GetCurrentLine() - glob.docMgr.currDoc.LinesOnScreen()/2
+#        top = EpyGlob.docMgr.currDoc.GetCurrentLine() - EpyGlob.docMgr.currDoc.LinesOnScreen()/2
 #        if top < 0:
 #            top = 0
-#        glob.docMgr.currDoc.ScrollToLine(top)
+#        EpyGlob.docMgr.currDoc.ScrollToLine(top)
 
     def OnbtnPopUp(self, event):
         eid = event.GetId()

@@ -3,8 +3,8 @@ import os, re
 import wx
 import config 
 
-App = None
-MainFrame = None
+app = None
+mainFrame = None
 docMgr = None
 
 PYTHON_FILE, HTML_FILE, TEXT_FILE = range(3)
@@ -28,6 +28,8 @@ RecentFiles = []
 FormatMacReTarget = re.compile('((?<!\r)\n)|(\r\n)', re.M)
 FormatUnixReTarget = re.compile('(\r\n)|(\r(?!\n))', re.M)
 FormatWinReTarget = re.compile('((?<!\r)\n)|(\r(?!\n))', re.M)
+
+PopupMenuList = []
 
 #**********************************************************************************    
 def LoadRecentFiles():
@@ -70,25 +72,6 @@ def WriteRecentFiles():
             utils.ShowMessage("Error Writing: " + recentfiles, "Recent Files Error")
 
 #**********************************************************************************
-#Pop Up Menu
-PopupMenuList = []
-
-def LoadPopUpFile():
-    #check for preferences file in user userpreferencesdirectory
-    popupfile = config.AppDataDir + "/popupmenu.dat"
-
-    if os.path.exists(popupfile):
-        try:
-            f = file(popupfile, 'r')
-            line = f.readline()
-            while len(line) > 0:
-                PopupMenuList.append(line.rstrip())
-                line = f.readline()
-            f.close()
-        except:
-            utils.ShowMessage("Error with: " + popupfile + "\nEasyPython will use the program defaults.", "Pop Up Menu Error")
-
-#**********************************************************************************
 def getIcon(self, bitmap):
     icon = wx.EmptyIcon()
     icon.CopyFromBitmap(bitmap)
@@ -98,7 +81,7 @@ defImages = {}
 
 def getBitmap(name):
     if name not in defImages.keys() :
-        defImages[name] = wx.Image(os.path.join('bitmaps', '32', name + '.png'), wx.BITMAP_TYPE_PNG)   
+        defImages[name] = wx.Image(os.path.join('bitmaps', '24', name + '.png'), wx.BITMAP_TYPE_PNG)   
         #print name
     return wx.BitmapFromImage(defImages[name])
 #**********************************************************************************

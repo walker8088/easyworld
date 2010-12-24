@@ -25,7 +25,7 @@
 import keyword, string
 import wx.stc
 
-import config, glob
+import config, EpyGlob
 from drProperty import *
 
 def GetKeyWords(number):

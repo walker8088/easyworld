@@ -2,7 +2,7 @@
 #   Sets line endings of all Wax files to \n (Unix style).
 #   Author: Jason Gedge.
 
-import glob
+import EpyGlob
 
 
 def fix_newlines(filename):
@@ -20,7 +20,7 @@ def fix_newlines(filename):
 if __name__ == "__main__":
 
     # Get all files in wax directory and its subdirectories
-    files = glob.glob('..\\*.py') + glob.glob('..\\*\\*.py')
+    files = EpyGlob.EpyGlob('..\\*.py') + EpyGlob.EpyGlob('..\\*\\*.py')
 
     # Take care of any double newlines
     for file in files:
