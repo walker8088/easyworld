@@ -42,12 +42,14 @@ class MainFrame(wx.Frame) :
 	ID_ABOUT_BOX = wx.NewId()
 	
         ID_SHOW_ROSTER_WIN   = wx.NewId()
-        ID_SHOW_DEBUG_WIN      = wx.NewId()
+        ID_SHOW_DEBUG_WIN    = wx.NewId()
+        ID_SHOW_CHAT_WIN     = wx.NewId()
         ID_SHOW_TOOLBAR      = wx.NewId()
         ID_SHOW_NOTEPAD      = wx.NewId()
         ID_SHOW_ADDR_BOOK    = wx.NewId()
         
         id2win = { 
+                ID_SHOW_CHAT_WIN   : ('chat',  u'交谈'), 
                 ID_SHOW_ROSTER_WIN : ('roster',  u'联系人'), 
                 #ID_SHOW_TOOLBAR :    ('toolbar', u'工具条'), 
 		ID_SHOW_NOTEPAD :    ('notepad', u'记事本'),
@@ -95,10 +97,19 @@ class MainFrame(wx.Frame) :
 		self._rawXmlPanel = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_MULTILINE)
                 self._debugPanel.AddPage(self._rawXmlPanel, u"通讯信息")
                 
-		win = self.id2win[self.ID_SHOW_DEBUG_WIN]
+                #self._logCtrl = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_MULTILINE)
+                #self._chatPanel.AddPage(self._logCtrl, u"日志信息")
+		
+                win = self.id2win[self.ID_SHOW_DEBUG_WIN]
                 self._mgr.AddPane(self._debugPanel, wx.aui.AuiPaneInfo().
-                                Name(win[0]).CaptionVisible(False).CloseButton(True).MinSize((150,150)).
+                                Name(win[0]).CaptionVisible(True).CloseButton(True).MinSize((150,150)).
                                 Bottom().LeftDockable(False).RightDockable(False).TopDockable(False).Show(True))
+               
+                #self._chatBook = wx.aui.AuiNotebook(self)
+		#win = self.id2win[self.ID_SHOW_CHAT_WIN]
+                #self._mgr.AddPane(self._chatBook, wx.aui.AuiPaneInfo().
+                #                Name(win[0]).CaptionVisible(True).CloseButton(True).CloseButton(True).MinSize((150,150)).
+                #                Bottom().LeftDockable(False).RightDockable(False).TopDockable(False).Show(True))
                 
 		self._notepadPanel = NoteBookPanel(self)
 		win = self.id2win[self.ID_SHOW_NOTEPAD]
