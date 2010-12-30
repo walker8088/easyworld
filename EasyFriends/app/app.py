@@ -27,7 +27,7 @@ class Application(wx.App):
 		self.configPath()
 		self.configLogger()
 		logging.info("friends started")
-		self.configAutoStart()
+		#self.configAutoStart()
 		
 		glob.mainFrame = main.MainFrame(None, -1, self.APP_SHOW_NAME)
                 self.SetTopWindow(glob.mainFrame)

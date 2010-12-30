@@ -325,24 +325,23 @@ class TitlePanel(wx.Panel) :
 		
 # ############################################################    
 import wx.lib.flatnotebook as fnb
-class ChatWindow(wx.MiniFrame) :
+class ChatWindow(wx.Frame) :
 	TITLE_HEIGHT = 16
 	
 	def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize) :
-                wx.MiniFrame.__init__(self, parent, -1, '', pos, size, style = wx.RESIZE_BORDER)
+                wx.Frame.__init__(self, parent, -1, u'交谈', pos, size, style =  wx.MINIMIZE_BOX | wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN )
           
                 self._mgr = wx.aui.AuiManager()
 	        self._mgr.SetManagedWindow(self)
 		
-		bookStyle = fnb.FNB_NODRAG 
-		bookStyle |= fnb.FNB_TABS_BORDER_SIMPLE
-		
-        	self._tilePanel = TitlePanel(self, wx.ID_ANY, size = (size[0], self.TITLE_HEIGHT))
-		self._chatBook = fnb.FlatNotebook(self, wx.ID_ANY, style = bookStyle)
+		#self._tilePanel = TitlePanel(self, wx.ID_ANY, size = (size[0], self.TITLE_HEIGHT))
 		 
-		self._mgr.AddPane(self._tilePanel, wx.aui.AuiPaneInfo().Top().Fixed().
-					MinSize((size[0],self.TITLE_HEIGHT)).
-					CloseButton(False).CaptionVisible(False).Name('titlepanel'))
+		#self._mgr.AddPane(self._tilePanel, wx.aui.AuiPaneInfo().Top().Fixed().
+		#			MinSize((size[0],self.TITLE_HEIGHT)).
+		#			CloseButton(False).CaptionVisible(False).Name('titlepanel'))
+		
+                bookStyle = fnb.FNB_NODRAG | fnb.FNB_TABS_BORDER_SIMPLE
+                self._chatBook = fnb.FlatNotebook(self, wx.ID_ANY, style = bookStyle)
 		self._mgr.AddPane(self._chatBook, wx.aui.AuiPaneInfo().
 	                                Name('chatbook').CenterPane())
 		self._mgr.Update()
@@ -356,7 +355,7 @@ class ChatWindow(wx.MiniFrame) :
 		#self.Bind(wx.EVT_ACTIVATE, self.OnActivate)
 		#self.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
 		
-		self.SetTransparent(TRANSPARENCY_MAX)
+		#self.SetTransparent(TRANSPARENCY_MAX)
 		'''
 		if parent.IsShown() :
 			self.CenterOnPanent()
@@ -402,10 +401,11 @@ class ChatWindow(wx.MiniFrame) :
 		
 	def OnSize(self, evt):
 		newSize = evt.GetSize()
-		self._tilePanel.SetSize((newSize[0], self.TITLE_HEIGHT))
+		#self._tilePanel.SetSize((newSize[0], self.TITLE_HEIGHT))
 		self._mgr.Update()
 		
 	def OnMouseWheel(self, event) :
+                return
 		rotation = event.GetWheelRotation()
 		if rotation > 0 :
 			self.transparent += TRANSPARENCY_STEP

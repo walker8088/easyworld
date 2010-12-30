@@ -87,7 +87,7 @@ class MainFrame(wx.Frame) :
         	win = self.id2win[self.ID_SHOW_ROSTER_WIN]
                 self._mgr.AddPane(self._rosterPanel,  wx.aui.AuiPaneInfo().
                                 Name(win[0]).Caption(win[1]).
-                                Right().CloseButton(True).BottomDockable(False).TopDockable(False).Show(False))
+                                Right().CloseButton(True).BottomDockable(False).TopDockable(False).Show(True))
                 
 		self._debugPanel = wx.aui.AuiNotebook(self)
 		self._logCtrl = wx.TextCtrl(self, -1, '', style = wx.NO_BORDER | wx.TE_MULTILINE)
@@ -98,7 +98,7 @@ class MainFrame(wx.Frame) :
 		win = self.id2win[self.ID_SHOW_DEBUG_WIN]
                 self._mgr.AddPane(self._debugPanel, wx.aui.AuiPaneInfo().
                                 Name(win[0]).CaptionVisible(False).CloseButton(True).MinSize((150,150)).
-                                Bottom().LeftDockable(False).RightDockable(False).TopDockable(False).Show(False))
+                                Bottom().LeftDockable(False).RightDockable(False).TopDockable(False).Show(True))
                 
 		self._notepadPanel = NoteBookPanel(self)
 		win = self.id2win[self.ID_SHOW_NOTEPAD]

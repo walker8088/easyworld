@@ -430,7 +430,7 @@ class RosterTreeCtrl(wx.TreeCtrl) :
         def OnCmdChat(self, event) :
 		jid = self.getSelectedJID()
 		if jid != None :
-                        self.GetParent().GetParent().activeChatSession(jid)      
+                        self.GetParent().GetParent()._sessionMgr.activeChatSession(jid)      
                         
         def OnCmdSendFile(self, event) :
 		jid = self.getSelectedJID()
@@ -457,7 +457,7 @@ class RosterTreeCtrl(wx.TreeCtrl) :
 			dlg.Destroy()	
 			new_jid = presence.jid
 			
-			session = self.GetParent().GetParent().activeChatSession(jid)      
+			session = self.GetParent().GetParent()._sessionMgr.activeChatSession(jid)      
                         fsession = glob.imclient.file_transfer_mgr.new_send_session(new_jid, file_name)
 			glob.imclient.file_transfer_mgr.send_si_request(fsession)	
 			session.appendFileTransferSession(fsession)			
