@@ -58,8 +58,6 @@ class MainFrame(wx.Frame):
         
         EpyGlob.EventMgr.Bind(EventManager.EVT_FILE_NEW, self.OnEventFileNew)
         
-        config.Init()
-        
         #if hasattr(sys, "frozen") and getattr(sys, "frozen") == "windows_exe":
         #    self.icon = win32gui.CreateIconFromResource(win32api.LoadResource(None, win32con.RT_ICON, 1), True)
         #else :
@@ -92,10 +90,10 @@ class MainFrame(wx.Frame):
                           Right().Show(False).CloseButton(True).MaximizeButton(False).MinimizeButton(False).MinSize((250, -1)))
   
         self.infobook = aui.AuiNotebook(self, -1, (0, 0), wx.Size(430, 200), style = 0)
-        self._mgr.AddPane(self.infobook, aui.AuiPaneInfo().Name("infobook").Bottom().Show(False).CaptionVisible(False).PaneBorder(False))
+        self._mgr.AddPane(self.infobook, aui.AuiPaneInfo().Name("infobook").Bottom().Show(True).CaptionVisible(False).PaneBorder(False))
         
-        self.runPrompt = DrPrompt(self)
-        self.infobook.AddPage(self.runPrompt, u"程序输出")
+        self.txtPrompt = DrPrompt(self)
+        self.infobook.AddPage(self.txtPrompt, u"程序输出")
         
         self.UpdateTitle()
         
@@ -423,7 +421,6 @@ class MainFrame(wx.Frame):
         pass
         
     #**********************************************************************************
-    
     def OnCheckSyntax(self, event):
         if self.docMgr.selection < 0 :
                 return
@@ -472,47 +469,10 @@ class MainFrame(wx.Frame):
         d.Destroy()
 
     def OnEnd(self, event):
-        return
-        if self.txtPrompt.pid != -1:
-            self.infobook.SetPageImage(self.promptPosition, 2)
-            self.UpdateMenuAndToolbar()
-            wx.Process_Kill(self.txtPrompt.pid, wx.SIGKILL)
-            self.txtPrompt.SetReadOnly(1)
-    '''
-    def OnProcessEnded(self, event):
-        #Set the process info to the correct position in the array.
-    
-        i = 0
-        epid = event.GetPid()
+        if self.pid != -1:
+            wx.Process_Kill(self.pid, wx.SIGKILL)
+        self.pid = -1
         
-        try:
-            i = map(lambda tprompt: tprompt.pid == epid, self.prompts).index(True)
-        except:
-            return
-
-        #First, check for any leftover output.
-        self.prompts[i].OnIdle(event)
-
-        #If this is the process for the current window:
-        if self.promptPosition == i:
-            self.txtPrompt.process.Destroy()
-            self.txtPrompt.process = None
-            self.txtPrompt.pid = -1
-            self.txtPrompt.SetReadOnly(1)
-            self.txtPrompt.pythonintepreter = 0
-            self.UpdateMenuAndToolbar()
-            self.SetStatusText("", 2)
-            self.infobook.SetPageImage(i, 2)
-        else:
-            self.prompts[i].process.Destroy()
-            self.prompts[i].process = None
-            self.prompts[i].pid = -1
-            self.prompts[i].SetReadOnly(1)
-            self.prompts[i].pythonintepreter = 0
-            self.infobook.SetPageImage(i, 0)
-            
-        self.docMgr.currDoc.SetFocus()
-    '''
     #**********************************************************************************
     def OnPrefs(self, event):
         from drPrefsDialog import drPrefsDialog
@@ -574,7 +534,7 @@ class MainFrame(wx.Frame):
             
     #**********************************************************************************
     def OnFind(self, event):
-        stc = self.GetCurrDoc()
+        stc = self.docMgr.GetCurrDoc()
         d = drFindReplaceDialog(self, -1, "Find", stc)
         
         #d.SetOptions(self.FindOptions)
@@ -587,13 +547,13 @@ class MainFrame(wx.Frame):
         d.Show(True)
 
     def OnFindNext(self, event):
-        self.GetCurrDoc().Finder.DoFindNext()
+        self.docMgr.GetCurrDoc().Finder.DoFindNext()
 
     def OnFindPrevious(self, event):
-        self.GetCurrDoc().Finder.DoFindPrevious()
+        self.docMgr.GetCurrDoc().Finder.DoFindPrevious()
 
     def OnReplace(self, event):
-        stc = self.GetCurrDoc()
+        stc = self.docMgr.GetCurrDoc()
         d = drFindReplaceDialog(self, -1, "Replace", stc, 1)
         d.SetOptions(EpyGlob.ReplaceOptions)
         if stc.GetSelectionStart() < stc.GetSelectionEnd():
@@ -647,7 +607,6 @@ class MainFrame(wx.Frame):
         self.ViewURLInBrowser(config.AppDir + "/documentation/help.html")
         
     #**********************************************************************************
-    
     def UpdateRecentFiles(self) :
         #Update Recent Files
         if EpyGlob.RecentFiles.count(self.docMgr.currDoc.filename) != 0:
@@ -661,6 +620,7 @@ class MainFrame(wx.Frame):
         self.SourceBrowser.Browse()
           
     #**********************************************************************************
+    '''
     def OnPython(self, event):
         if config.PLATFORM_IS_WIN:        
             import win32process
@@ -675,38 +635,72 @@ class MainFrame(wx.Frame):
             p = subprocess.Popen([config.pythexec],shell=True)
         else :
             pass
-       
+    '''
     def Execute(self, command, statustext = ''):
         if not statustext:
             statustext = "Running Command"
         self.RunCmd(command, statustext, command)
-        
-    def ExecuteWithPython(self, command = '', statustext = '', pythonargs='', pagetext='Python'):
-        commandstring = string.join([' -u', pythonargs, config.prefs.pythonargs, command], ' ').rstrip()
-        if config.PLATFORM_IS_WIN:
-            self.RunCmd(("cmd /k " + config.pythexecw + commandstring), statustext, pagetext)
-        else:
-            self.RunCmd((config.pythexec + commandstring), statustext, pagetext)
     
-    def RunCmd(self, command, statustext = "Running Command", pagetext="Prompt", redin="", redout = "", rederr=""):
-        
+    def OnPython(self, event) : #ExecutePython(self):
+        self.txtPrompt.pythonintepreter = 1
+        self.ExecuteWithPython('', 'Running Python Interpreter', '-i', 'Python')
+        try:
+            wx.Yield()
+        except:
+            pass
+        #workaround by Dunderhead.
+        #if self.PLATFORM_IS_WIN:
+        #self.txtPrompt._waitforoutput('>>>')
+        #self.txtPrompt._waitforoutput('>>>')
+        #self.txtPrompt.ExecuteCommands(self.prefs.promptstartupscript)
+
+    def ExecuteWithPython(self, command = '', statustext = '', pythonargs='', pagetext='Python'):
+        commandstring = string.join([' -u',  command], ' ').rstrip()
+        #if self.PLATFORM_IS_WIN:
+        self.RunCmd(('python.exe ' + commandstring), statustext, pagetext)
+        #else:
+        #    self.RunCmd((self.pythexec + commandstring), statustext, pagetext)
+           
+    def RunCmd(self, command, statustext = "Running Command", pagetext="Prompt", redin="", redout = "", rederr=""):        
+        '''
         process = wx.Process(self) 
         
         if type(command) == unicode:
                 command = command.encode(wx.GetDefaultPyEncoding())
     
         wx.Execute(command, wx.EXEC_ASYNC , process)
+        '''
+        self.txtPrompt.SetReadOnly(0)
+        self.txtPrompt.SetText(command + '\n')
+        self.txtPrompt.SetScrollWidth(1)
+        self.txtPrompt.editpoint = self.txtPrompt.GetLength()
+        self.txtPrompt.GotoPos(self.txtPrompt.editpoint)
+        self.SetStatusText(statustext, 2)
+        self.txtPrompt.process = wx.Process(self)
+        self.txtPrompt.process.Redirect()
+        self.txtPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.txtPrompt.process)
+        '''
+        if self.PLATFORM_IS_WIN:
+            self.txtPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.txtPrompt.process)
+        else:
+            self.txtPrompt.pid = wx.Execute(command, wx.EXEC_ASYNC, self.txtPrompt.process)
+        '''
+        self.txtPrompt.inputstream = self.txtPrompt.process.GetInputStream()
+        self.txtPrompt.errorstream = self.txtPrompt.process.GetErrorStream()
+        self.txtPrompt.outputstream = self.txtPrompt.process.GetOutputStream()
+
+        self.txtPrompt.process.redirectOut = redout
+        self.txtPrompt.process.redirectErr = rederr
+
+        self.txtPrompt.SetFocus()
+
         
-    #**********************************************************************************
-    def GetCurrDoc(self):
-        return self.docMgr.currDoc
-      
+    #********************************************************************************** 
     def RunShortcuts(self, event, stc = None, SplitView = 0):
         #return drShortcuts.RunShortcuts(EpyGlob.shortcutMgr, event, stc, SplitView)
         pass
         
-    #**********************************************************************************
-    
+    #**********************************************************************************  
     def updatePrefs(self, oldprefs):
         #Styling:
         
@@ -770,9 +764,6 @@ class MainFrame(wx.Frame):
         wx.Execute((config.prefs.documentationbrowser + ' "' + url + '"'), wx.EXEC_ASYNC)
 
     #**********************************************************************************
-    def GetNewId(self):
-        return 10000 + wx.NewId()
-
     def GetPreference(self, pref, key=None):
         if key is not None:
             return config.prefs[pref][key]
@@ -828,24 +819,13 @@ class MainFrame(wx.Frame):
         self.docMgr.SelectDoc(oldpos)
 
         return True
-
-    #**********************************************************************************
-    
-    
               
-#*******************************************************************************************************
-def opj(path):
-    """Convert paths to the platform-specific separator"""
-    st = apply(os.path.join, tuple(path.split('/')))
-    # HACK: on Linux, a leading / gets lost...
-    if path.startswith('/'):
-        st = '/' + st
-    return st
     
+#*******************************************************************************************************
 class SplashScreen(wx.SplashScreen):
     def __init__(self, app):
         self.app = app
-        bmp = wx.Image(opj("bitmaps/splash.png")).ConvertToBitmap()
+        bmp = wx.Image(os.path.join(config.BitmapDir,"splash.png")).ConvertToBitmap()
         wx.SplashScreen.__init__(self, bmp,
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  2500, None, -1)
@@ -880,6 +860,8 @@ class EasyPythonApp(wx.App):
 
     def OnInit(self):       
         self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
+        
+        config.Init()
          
         splash = SplashScreen(self)
         splash.Show()
@@ -905,7 +887,8 @@ class EasyPythonApp(wx.App):
         dlg = wx.lib.dialogs.ScrolledMessageDialog(None, s, u"出错信息")
         dlg.ShowModal()
         dlg.Destroy()
-#---------------------------------------------------------------------------
+
+#*******************************************************************************************************
 def main():
     try:
         demoPath = os.path.dirname(__file__)

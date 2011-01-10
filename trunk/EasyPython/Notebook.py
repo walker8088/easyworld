@@ -43,7 +43,7 @@ class DocNotebook(aui.AuiNotebook):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnPageClosing)
         #self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.OnPageClosed)
         
-        self.Bind( wx.EVT_RIGHT_DOWN,            self.OnPopUp )
+        #self.Bind( wx.EVT_RIGHT_DOWN,            self.OnPopUp )
         #self.Bind( wx.EVT_LEFT_UP,               self.OnSelectTab )
         #self.Bind( wx.EVT_LEFT_DCLICK,           self.OnLeftDoubleClick )
         
@@ -61,6 +61,7 @@ class DocNotebook(aui.AuiNotebook):
         
     def OnPopUp(self, event):
         tabmenu = wx.Menu()
+        
         '''
         tabmenu.Append(EpyGlob.mainFrame.ID_CLOSE, u"关闭(&Close)")
         tabmenu.Append(EpyGlob.mainFrame.ID_CLOSE_ALL, u"关闭所有页面(Close &All Tabs)")
@@ -68,11 +69,11 @@ class DocNotebook(aui.AuiNotebook):
         tabmenu.AppendSeparator()
         tabmenu.Append(EpyGlob.mainFrame.ID_SAVE, u"保存(&Save)")
         tabmenu.Append(EpyGlob.mainFrame.ID_SAVE_AS, u"另存为(Save &As)...")
-        
+        '''
         ht = self.HitTest(event.GetPosition())[0]
         if ht > -1:
             self.SetSelection(ht)
-        '''
-        self.PopupMenu(tabmenu, event.GetPosition())
         
-        #tabmenu.Destroy()
+        self.PopupMenu(tabmenu, event.GetPosition())
+        tabmenu.Destroy()
+        
