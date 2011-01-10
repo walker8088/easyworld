@@ -329,11 +329,13 @@ class ChatWindow(wx.Frame) :
 	TITLE_HEIGHT = 16
 	
 	def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize) :
-                wx.Frame.__init__(self, parent, -1, u'交谈', pos, size, style =  wx.MINIMIZE_BOX | wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN )
-          
+                wx.Frame.__init__(self, parent, -1, u'交谈', pos, size, style = wx.SYSTEM_MENU | wx.MINIMIZE_BOX | wx.RESIZE_BORDER | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN )
+                        
                 self._mgr = wx.aui.AuiManager()
 	        self._mgr.SetManagedWindow(self)
 		
+                self.SetIcon(parent._icon)
+                
 		#self._tilePanel = TitlePanel(self, wx.ID_ANY, size = (size[0], self.TITLE_HEIGHT))
 		 
 		#self._mgr.AddPane(self._tilePanel, wx.aui.AuiPaneInfo().Top().Fixed().

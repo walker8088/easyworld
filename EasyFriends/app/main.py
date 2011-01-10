@@ -14,6 +14,8 @@ from actions    import *
 from setting    import *
 from browser    import BrowserPanel
 
+from plugins import *
+                
 import filemgr
 
 from pyxmpp.all  import JID,Iq,Presence,Message,StreamError
@@ -175,6 +177,8 @@ class MainFrame(wx.Frame) :
 		self._sessionMgr = ChatSessionManager(self)
                 #self._sessionIndex = -1  
         	
+                self.InitPlugins()
+                
                 self.CenterOnScreen(wx.BOTH)
 		#self.SetTransparent(150)
                 
@@ -294,7 +298,11 @@ class MainFrame(wx.Frame) :
         def OpenUrl(self, url) :
 		self._browserPanel.OpenUrl(url)
 	#----------------------------------------------------------------------------------------------------------#
-
+        def InitPlugins(self) :
+                self.SubjectMsgHandler = {}
+                for item in plugin_list :
+                        item.RegisterPlugin(self)
+                        
         def OnTaskBarClick(self, event) :
                 if self.IsIconized():
                         self.Iconize(False)
@@ -373,9 +381,7 @@ class MainFrame(wx.Frame) :
 	        info.Name = wx.GetApp().APP_SHOW_NAME
 	        info.Version = wx.GetApp().APP_VERSION
 	        info.Copyright = "(C) 2008 walker"
-	        info.Description = wordwrap(
-	            u"Freinds 是一个以即时消息为基础的程序，目标是提供小型Office办公场所的基础协同应用。",
-	            350, wx.ClientDC(self))
+	        info.Description = u"Freinds 是一个以即时消息为基础的程序，目标是提供小型Office办公场所的基础协同应用。",
 	        info.WebSite = ("http://friends.my.org", "Friends  home page")
 	        info.Developers = [ "Walker Li" ]
 		
@@ -619,9 +625,9 @@ class MainFrame(wx.Frame) :
                 if not show:
 			show = ''
 			
-		msg = u'更新联系人出席状态信息( %s : %s : %s )' % (stanza.get_from(), typestr, show)
-		
-		self.updateConnectStatus(msg)                
+		#msg = u'更新联系人出席状态信息( %s : %s : %s )' % (stanza.get_from(), typestr, show)
+		#self.updateConnectStatus(msg)                
+                msg = str(stanza) 
                 self._rosterPanel.OnPresenceUpdate(event)
         
 	def onVcardReceived(self, event) :

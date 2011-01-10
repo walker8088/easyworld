@@ -300,7 +300,11 @@ class IMConnection(wx.EvtHandler, JabberClient):
         item = self.roster.remove_item(rosterItem)
 	iq=item.make_roster_push()
 	self.stream.send(iq)
-			
+    
+    def getRosterInfo(self, jid):
+        #TODO:
+        pass
+        
     def sendPresence(self, showMsg) :   
         p=Presence(show=showMsg, from_jid = self.jid)
         self.stream.send(p)
