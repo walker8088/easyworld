@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project EasySvn -->
-<!-- Saved: 2011-01-14, 11:34:36 -->
+<!-- Saved: 2011-01-14, 17:52:05 -->
 <!-- Copyright (C) 2011 li donglin, lidonglin8088@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -15,8 +15,14 @@
     <Source>EasySvn.py</Source>
     <Source>systray_rc.py</Source>
     <Source>__init__.py</Source>
+    <Source>Ui_DlgConfig.py</Source>
+    <Source>DlgConfig.py</Source>
+    <Source>SvnWorker.py</Source>
+    <Source>Ui_Main.py</Source>
   </Sources>
   <Forms>
+    <Form>DlgConfig.ui</Form>
+    <Form>Main.ui</Form>
   </Forms>
   <Translations>
   </Translations>
