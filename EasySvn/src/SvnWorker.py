@@ -21,7 +21,6 @@ class SvnWorker :
             self.client.callback_get_login = self.callback_get_login
             self.client.callback_ssl_server_trust_prompt = callback_ssl_server_trust_prompt 
         
-        
         def getCurrLocalRevNo(self) :        
                 entry = self.client.info(self.repo.work_path)
                 return entry.revision.number
@@ -44,6 +43,14 @@ class SvnWorker :
                 print "here"
                 return True, self.repo.user, self.repo.passwd, False
         
+        def canUpdate(self): 
+            local_rev = self.getCurrLocalRevNo()      
+            repo_rev = self.getCurrRepoRevNo()
+            if repo_rev == local_rev :
+                return False
+            else :
+                return True
+                
         def update(self) :
                 work_path = self.repo.work_path
                 
